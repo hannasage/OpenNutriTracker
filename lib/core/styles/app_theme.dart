@@ -90,7 +90,7 @@ ThemeData buildAppTheme(AppPalette p) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: p.accent,
+        foregroundColor: p.accentText,
         textStyle: text.labelLarge,
         shape: pill,
       ),

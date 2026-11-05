@@ -18,7 +18,7 @@ class LogTrayList extends StatelessWidget {
     final palette = Theme.of(context).brightness == Brightness.dark
         ? AppPalette.dark
         : AppPalette.light;
-    final accent = Theme.of(context).colorScheme.primary;
+    final accentText = Theme.of(context).colorScheme.accentText;
     final textTheme = Theme.of(context).textTheme;
     final items = tray.items;
     return Column(
@@ -38,7 +38,7 @@ class LogTrayList extends StatelessWidget {
                   minFontSize: 10,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.labelLarge?.copyWith(
-                    color: accent,
+                    color: accentText,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
                   ),

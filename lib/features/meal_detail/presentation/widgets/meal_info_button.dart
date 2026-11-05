@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
@@ -28,7 +29,7 @@ class MealInfoButton extends StatelessWidget {
     final infoUrl = _getInfoUrl();
     if (infoUrl.isEmpty) return const SizedBox.shrink();
 
-    final accent = Theme.of(context).colorScheme.primary;
+    final accent = Theme.of(context).colorScheme.accentText;
     return TextButton.icon(
       onPressed: () => _launchUrl(context, infoUrl),
       icon: Icon(Icons.open_in_new_rounded, size: 20, color: accent),

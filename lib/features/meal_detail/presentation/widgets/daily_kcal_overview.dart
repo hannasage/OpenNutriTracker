@@ -24,6 +24,7 @@ class DailyKcalOverview extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
+    final accentText = Theme.of(context).colorScheme.accentText;
     final textTheme = Theme.of(context).textTheme;
 
     final projected = dayKcalConsumed + currentSelectionKcal;
@@ -73,7 +74,7 @@ class DailyKcalOverview extends StatelessWidget {
                   dayKcalGoal.toStringAsFixed(0),
                 ),
             style: textTheme.labelLarge?.copyWith(
-              color: accent,
+              color: accentText,
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
