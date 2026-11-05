@@ -65,6 +65,15 @@ void main() {
       expect(a, isNot(const ParsedNutrient(id: NutrientId.fat)));
     });
 
+    test('keeps a value of unknown basis in its own slot', () {
+      const n = ParsedNutrient(id: NutrientId.fat, unknownBasis: _qty);
+      expect(n.unknownBasis, _qty);
+      expect(n.per100, isNull);
+      expect(n.perServing, isNull);
+      expect(n, isNot(const ParsedNutrient(id: NutrientId.fat)));
+      expect(n, const ParsedNutrient(id: NutrientId.fat, unknownBasis: _qty));
+    });
+
     test('keeps the source box', () {
       const n = ParsedNutrient(id: NutrientId.fat, sourceBox: _rect);
       expect(n.sourceBox, _rect);
@@ -172,6 +181,7 @@ void main() {
       'per100g',
       'per100ml',
       'perServing',
+      'unknown',
     ]);
     expect(LabelUnit.values.map((e) => e.name), [
       'g',

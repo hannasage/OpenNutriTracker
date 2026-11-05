@@ -115,7 +115,7 @@ class NutrientExtractor {
         // A prepared column is read and dropped.
       });
       final unknown = assignment.unknownBasisCell;
-      if (unknown != null) slots.add(_Slot(unknown, _SlotKind.per100, null));
+      if (unknown != null) slots.add(_Slot(unknown, _SlotKind.unknown, null));
 
       if (assignment.ambiguous && match.id != null) {
         _draft(
@@ -231,10 +231,13 @@ class NutrientExtractor {
   }
 
   static void _store(_Draft draft, _SlotKind kind, ParsedQuantity quantity) {
-    if (kind == _SlotKind.per100) {
-      draft.per100 = quantity;
-    } else {
-      draft.perServing = quantity;
+    switch (kind) {
+      case _SlotKind.per100:
+        draft.per100 = quantity;
+      case _SlotKind.perServing:
+        draft.perServing = quantity;
+      case _SlotKind.unknown:
+        draft.unknownBasis = quantity;
     }
   }
 
@@ -245,9 +248,7 @@ class NutrientExtractor {
     for (final column in layout.columns) {
       if (column.kind == ColumnKind.perServing) return LabelBasis.perServing;
     }
-    // No header. The basis is unknown, and the warning says so. The enum has
-    // no unknown value, so this is a placeholder.
-    return LabelBasis.per100g;
+    return LabelBasis.unknown;
   }
 
   static _RowParts _partsOf(LabelRow row) {
@@ -272,7 +273,7 @@ class _RowParts {
   final List<LabelToken> values;
 }
 
-enum _SlotKind { per100, perServing }
+enum _SlotKind { per100, perServing, unknown }
 
 class _Slot {
   const _Slot(this.cell, this.kind, this.basis);
@@ -291,14 +292,19 @@ class _Draft {
   final Set<FieldFlag> flags = {};
   ParsedQuantity? per100;
   ParsedQuantity? perServing;
+  ParsedQuantity? unknownBasis;
 
-  bool has(_SlotKind kind) =>
-      (kind == _SlotKind.per100 ? per100 : perServing) != null;
+  bool has(_SlotKind kind) => switch (kind) {
+    _SlotKind.per100 => per100 != null,
+    _SlotKind.perServing => perServing != null,
+    _SlotKind.unknown => unknownBasis != null,
+  };
 
   ParsedNutrient build() => ParsedNutrient(
     id: id,
     per100: per100,
     perServing: perServing,
+    unknownBasis: unknownBasis,
     flags: Set.unmodifiable(flags),
     sourceBox: box,
   );

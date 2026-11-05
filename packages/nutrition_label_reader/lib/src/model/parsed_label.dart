@@ -3,8 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'field_flag.dart';
 import 'label_rect.dart';
 
-/// The basis of a nutrition column.
-enum LabelBasis { per100g, per100ml, perServing }
+/// The basis of a nutrition column. [unknown] means the label has no header
+/// that says which basis its numbers use.
+enum LabelBasis { per100g, per100ml, perServing, unknown }
 
 /// A nutrient the parser can read.
 enum NutrientId {
@@ -66,6 +67,7 @@ class ParsedNutrient extends Equatable {
     required this.id,
     this.per100,
     this.perServing,
+    this.unknownBasis,
     this.flags = const {},
     this.sourceBox,
   });
@@ -73,6 +75,9 @@ class ParsedNutrient extends Equatable {
   final NutrientId id;
   final ParsedQuantity? per100;
   final ParsedQuantity? perServing;
+
+  /// A value from a column with no header. It claims no basis.
+  final ParsedQuantity? unknownBasis;
   final Set<FieldFlag> flags;
 
   /// The row's box, for a "show source" view.
@@ -82,7 +87,14 @@ class ParsedNutrient extends Equatable {
       flags.isEmpty ? FieldReview.looksRight : FieldReview.checkThis;
 
   @override
-  List<Object?> get props => [id, per100, perServing, flags, sourceBox];
+  List<Object?> get props => [
+    id,
+    per100,
+    perServing,
+    unknownBasis,
+    flags,
+    sourceBox,
+  ];
 }
 
 /// The serving size printed on a label.

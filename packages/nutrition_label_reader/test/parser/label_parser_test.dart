@@ -435,7 +435,7 @@ void main() {
       expect(_parsed(euTwoColumn.asTable()).warnings, isEmpty);
     });
 
-    test('no header and one column keeps the values and says so', () {
+    test('no header and one column keeps the values, basis unknown', () {
       const grid = FixtureGrid([
         ['Test cereal'],
         ['Energy', '1046 kJ / 250 kcal'],
@@ -446,7 +446,11 @@ void main() {
       for (final doc in [grid.asTable(), grid.asSeparateBoxes()]) {
         final label = _parsed(doc);
         expect(label.warnings, {LabelWarning.basisUnknown});
-        expect(label.nutrient(NutrientId.fat)!.per100!.value, 3.5);
+        expect(label.primaryBasis, LabelBasis.unknown);
+        final fat = label.nutrient(NutrientId.fat)!;
+        expect(fat.unknownBasis!.value, 3.5);
+        expect(fat.per100, isNull);
+        expect(fat.perServing, isNull);
         for (final n in label.nutrients) {
           expect(
             n.flags,
@@ -454,9 +458,32 @@ void main() {
             reason: '${n.id}',
           );
           expect(n.review, FieldReview.checkThis);
+          expect(n.per100, isNull);
+          expect(n.perServing, isNull);
+          expect(n.unknownBasis, isNotNull);
         }
       }
     });
+
+    test(
+      'a header row with a percent column only leaves the basis unknown',
+      () {
+        const grid = FixtureGrid([
+          ['', '', '% Daily Value*'],
+          ['Calories', '230'],
+          ['Total Fat', '8 g', '10%'],
+          ['Total Carbohydrate', '37 g', '13%'],
+          ['Protein', '3 g'],
+        ]);
+        final label = _parsed(grid.asSeparateBoxes());
+        expect(label.primaryBasis, LabelBasis.unknown);
+        expect(label.warnings, {
+          LabelWarning.percentColumnIgnored,
+          LabelWarning.basisUnknown,
+        });
+        expect(label.nutrient(NutrientId.fat)!.unknownBasis!.value, 8);
+      },
+    );
 
     test('an as prepared column is ignored with a warning', () {
       const grid = FixtureGrid([

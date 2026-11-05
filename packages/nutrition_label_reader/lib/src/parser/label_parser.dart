@@ -97,14 +97,16 @@ class LabelParser {
     if (extraction.valueMatches < config.minValues) {
       return failure(LabelFailureReason.noNutritionPanel);
     }
-    final hasValue = extraction.nutrients.any(
-      (n) => n.per100?.value != null || n.perServing?.value != null,
-    );
+    bool hasValueIn(ParsedNutrient n) =>
+        n.per100?.value != null ||
+        n.perServing?.value != null ||
+        n.unknownBasis?.value != null;
+    final hasValue = extraction.nutrients.any(hasValueIn);
     if (!hasValue) return failure(LabelFailureReason.noReadableValues);
     final hasEnergy = extraction.nutrients.any(
       (n) =>
           (n.id == NutrientId.energyKj || n.id == NutrientId.energyKcal) &&
-          (n.per100?.value != null || n.perServing?.value != null),
+          hasValueIn(n),
     );
     if (!hasEnergy) return failure(LabelFailureReason.noEnergyRow);
 
