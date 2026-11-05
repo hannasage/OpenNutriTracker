@@ -60,7 +60,9 @@ class QuantityScanner {
   }
 
   /// Each quantity in [text], as written. Slash-joined quantities come apart.
+  /// A lone dash is one absent quantity.
   static List<String> quantities(String text) {
+    if (text.trim() == '-') return const ['-'];
     return [
       for (final segment in segments(text))
         if (segment.isQuantity) text.substring(segment.start, segment.end),

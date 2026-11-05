@@ -9,19 +9,22 @@ class LabelMatch {
     this.id,
     this.isSubItem = false,
     this.isIgnored = false,
+    this.isEnergy = false,
   });
 
   /// The folded phrase that matched.
   final String phrase;
 
-  /// Null when the row is ignored.
+  /// Null when the row is ignored, and null for a generic energy word such as
+  /// "energy". Then the unit of each quantity decides the id.
   final NutrientId? id;
   final bool isSubItem;
 
   /// True when the row name is on the vocabulary's ignore list.
   final bool isIgnored;
 
-  bool get isEnergy => id == NutrientId.energyKj || id == NutrientId.energyKcal;
+  /// True for every word of the energy family.
+  final bool isEnergy;
 }
 
 /// One place a phrase occurs in folded text.
@@ -136,13 +139,23 @@ class LabelMatcher {
         return LabelMatch(phrase: clean, isSubItem: isSubItem, isIgnored: true);
       }
     }
+    final ids = <NutrientId>{};
     for (final entry in vocabulary.nutrientNames.entries) {
       for (final raw in entry.value) {
-        if (foldForMatching(raw) == clean) {
-          return LabelMatch(phrase: clean, id: entry.key, isSubItem: isSubItem);
-        }
+        if (foldForMatching(raw) == clean) ids.add(entry.key);
       }
     }
-    return null;
+    if (ids.isEmpty) return null;
+    const energy = {NutrientId.energyKj, NutrientId.energyKcal};
+    if (ids.length > 1 && energy.containsAll(ids)) {
+      return LabelMatch(phrase: clean, isSubItem: isSubItem, isEnergy: true);
+    }
+    final id = ids.first;
+    return LabelMatch(
+      phrase: clean,
+      id: id,
+      isSubItem: isSubItem,
+      isEnergy: energy.contains(id),
+    );
   }
 }

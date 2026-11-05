@@ -9,11 +9,13 @@ abstract class LabelVocabulary {
   /// A BCP 47 tag, for example `en`.
   String get languageTag;
 
-  /// Names a nutrient row can carry. A phrase belongs to one id only.
+  /// Names a nutrient row can carry. A phrase belongs to one id only, with
+  /// one exception.
   ///
-  /// Energy words are split over [NutrientId.energyKj] and
-  /// [NutrientId.energyKcal]. Both ids belong to the energy family, and the
-  /// unit of the quantity decides which one a value becomes.
+  /// A generic energy word such as "energy" is listed under both
+  /// [NutrientId.energyKj] and [NutrientId.energyKcal]. The matcher then gives
+  /// no id, and the unit of each quantity decides which one it becomes. A word
+  /// that names a unit, such as "kcal", is listed under its own id only.
   Map<NutrientId, List<String>> get nutrientNames;
 
   /// Header phrases for a per 100 g or per 100 ml column. A phrase carries its

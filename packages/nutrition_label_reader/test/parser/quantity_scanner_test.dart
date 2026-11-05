@@ -28,6 +28,11 @@ void main() {
       ]);
     });
 
+    test('takes a lone dash as an absent value', () {
+      expect(QuantityScanner.quantities('-'), ['-']);
+      expect(QuantityScanner.quantities(' - '), ['-']);
+    });
+
     test('takes absent words', () {
       expect(QuantityScanner.quantities('trace'), ['trace']);
       expect(QuantityScanner.quantities('n/a'), ['n/a']);

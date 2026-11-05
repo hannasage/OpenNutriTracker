@@ -8,3 +8,5 @@ export 'src/model/parse_result.dart';
 export 'src/model/parsed_label.dart';
 export 'src/vocabulary/english.dart';
 export 'src/vocabulary/label_vocabulary.dart';
+export 'src/parser/label_parser.dart';
+export 'src/parser/parser_config.dart';

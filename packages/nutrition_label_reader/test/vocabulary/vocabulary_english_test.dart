@@ -37,15 +37,18 @@ void main() {
       });
     });
 
-    test('maps no phrase to two ids', () {
+    test('maps no phrase to two ids, except across the energy pair', () {
       final seen = <String, NutrientId>{};
       for (final entry in vocab.nutrientNames.entries) {
         for (final phrase in entry.value) {
-          expect(
-            seen.containsKey(phrase),
-            isFalse,
-            reason: '"$phrase" is listed for ${seen[phrase]} and ${entry.key}',
-          );
+          final other = seen[phrase];
+          if (other != null) {
+            expect(
+              {other, entry.key},
+              {NutrientId.energyKj, NutrientId.energyKcal},
+              reason: '"$phrase" is listed for $other and ${entry.key}',
+            );
+          }
           seen[phrase] = entry.key;
         }
       }
@@ -95,6 +98,18 @@ void main() {
       expect(matcher.match('Protein')!.isEnergy, isFalse);
     });
 
+    test('a generic energy word has no id, so the unit decides', () {
+      expect(matcher.match('Energy')!.id, isNull);
+      expect(matcher.match('Energy value')!.id, isNull);
+      expect(matcher.match('Energy 1046kJ')!.id, isNull);
+    });
+
+    test('a specific energy word keeps its id', () {
+      expect(matcher.match('Calories')!.id, NutrientId.energyKcal);
+      expect(matcher.match('kcal')!.id, NutrientId.energyKcal);
+      expect(matcher.match('kJ')!.id, NutrientId.energyKj);
+    });
+
     test('matches the phrase up to the first quantity', () {
       expect(idOf('Protein 5 g'), NutrientId.protein);
       expect(idOf('Protein 5g'), NutrientId.protein);
@@ -102,7 +117,6 @@ void main() {
       expect(idOf('Total Fat 3,5 g 10 g'), NutrientId.fat);
       expect(idOf('Vitamin B12 2,4 µg'), NutrientId.vitaminB12);
       expect(idOf('Vitamin D 5 µg'), NutrientId.vitaminD);
-      expect(idOf('Energy 1046kJ'), NutrientId.energyKj);
     });
 
     test('drops bullets, dashes and a trailing colon', () {

@@ -18,7 +18,7 @@ class EnglishLabelVocabulary implements LabelVocabulary {
   @override
   Map<NutrientId, List<String>> get nutrientNames => const {
     NutrientId.energyKj: ['energy', 'energy value', 'kj'],
-    NutrientId.energyKcal: ['calories', 'kcal'],
+    NutrientId.energyKcal: ['energy', 'energy value', 'calories', 'kcal'],
     NutrientId.fat: ['fat', 'total fat'],
     NutrientId.saturatedFat: [
       'saturates',
