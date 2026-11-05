@@ -12,3 +12,4 @@ export 'src/parser/label_parser.dart';
 export 'src/parser/parser_config.dart';
 export 'src/exceptions.dart';
 export 'src/model/reader_support.dart';
+export 'src/nutrition_label_reader.dart';
