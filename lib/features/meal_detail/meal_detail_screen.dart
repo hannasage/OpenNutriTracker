@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
+import 'package:opennutritracker/core/utils/motion.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -45,6 +46,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   late MealDetailBloc _mealDetailBloc;
   final _scrollController = ScrollController();
+  // One turn per visit: only the first edit scrolls to the calorie text.
+  final _scrollOnce = ScrollOncePerVisit();
 
   late MealEntity meal;
   late DateTime _day;
@@ -538,13 +541,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   }
 
   void _scrollToCalorieText() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _containerSize - 50,
-        duration: const Duration(seconds: 1),
-        curve: Curves.easeInOut,
-      );
-    }
+    _scrollOnce.scrollTo(
+      _scrollController,
+      _containerSize - 50,
+      reduceMotion: MediaQuery.disableAnimationsOf(context),
+    );
   }
 }
 

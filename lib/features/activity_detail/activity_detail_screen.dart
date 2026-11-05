@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/motion.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -35,6 +36,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   final log = Logger('ItemDetailScreen');
   final _scrollController = ScrollController();
+  // One turn per visit: only the first edit scrolls to the calorie text.
+  final _scrollOnce = ScrollOncePerVisit();
 
   late PhysicalActivityEntity activityEntity;
   late DateTime _day;
@@ -256,10 +259,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   void scrollToCalorieText() {
-    _scrollController.animateTo(
+    _scrollOnce.scrollTo(
+      _scrollController,
       _containerSize,
-      duration: const Duration(seconds: 1),
-      curve: Curves.easeInOut,
+      reduceMotion: MediaQuery.disableAnimationsOf(context),
     );
   }
 
