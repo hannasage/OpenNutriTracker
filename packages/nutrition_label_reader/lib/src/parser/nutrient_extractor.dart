@@ -58,6 +58,7 @@ class NutrientExtractor {
     final drafts = <NutrientId, _Draft>{};
     final ignored = <String>[];
     final names = <String>{};
+    final duplicates = <NutrientId>{};
     var valueMatches = 0;
     var percentSeen = false;
     LabelMatch? previousEnergy;
@@ -134,6 +135,7 @@ class NutrientExtractor {
         _draft(
           drafts,
           created,
+          duplicates,
           match.id!,
           row.box,
         )?.flags.addAll(assignment.flags);
@@ -152,13 +154,23 @@ class NutrientExtractor {
             };
             if (id == null) continue;
             mapped = true;
-            _put(drafts, created, id, row.box, slot, q, assignment.flags);
+            _put(
+              drafts,
+              created,
+              duplicates,
+              id,
+              row.box,
+              slot,
+              q,
+              assignment.flags,
+            );
           }
         } else if (quantities.length == 1) {
           mapped = true;
           _put(
             drafts,
             created,
+            duplicates,
             match.id!,
             row.box,
             slot,
@@ -167,7 +179,7 @@ class NutrientExtractor {
           );
         } else {
           mapped = true;
-          final draft = _draft(drafts, created, match.id!, row.box);
+          final draft = _draft(drafts, created, duplicates, match.id!, row.box);
           if (draft != null) {
             _store(
               draft,
@@ -187,9 +199,19 @@ class NutrientExtractor {
       if (!mapped && !assignment.ambiguous) ignored.add(row.text);
     }
 
+    // A second full panel, such as the same label in another language, repeats
+    // at least as many nutrients as a panel needs. The first panel wins and
+    // the label says so. A smaller repeat is a duplicate row on each nutrient.
+    final isSecondPanel = duplicates.length >= config.minNutrientNames;
+    if (!isSecondPanel) {
+      for (final id in duplicates) {
+        drafts[id]!.flags.add(FieldFlag.duplicateRow);
+      }
+    }
     final warnings = {
       ...layout.warnings,
       if (percentSeen) LabelWarning.percentColumnIgnored,
+      if (isSecondPanel) LabelWarning.duplicatePanelIgnored,
     };
     return ExtractionResult(
       nutrients: [for (final d in drafts.values) d.build()],
@@ -204,13 +226,14 @@ class NutrientExtractor {
   void _put(
     Map<NutrientId, _Draft> drafts,
     Set<NutrientId> created,
+    Set<NutrientId> duplicates,
     NutrientId id,
     LabelRect box,
     _Slot slot,
     String text,
     Set<FieldFlag> rowFlags,
   ) {
-    final draft = _draft(drafts, created, id, box);
+    final draft = _draft(drafts, created, duplicates, id, box);
     if (draft == null) return;
     if (draft.has(slot.kind)) return;
     final reading = QuantityLexer.read(
@@ -226,10 +249,11 @@ class NutrientExtractor {
   }
 
   /// The draft for [id], or null when an earlier row already has it. A later
-  /// row for the same nutrient adds `duplicateRow` to the first one.
+  /// row for the same nutrient adds [id] to [duplicates].
   _Draft? _draft(
     Map<NutrientId, _Draft> drafts,
     Set<NutrientId> created,
+    Set<NutrientId> duplicates,
     NutrientId id,
     LabelRect box,
   ) {
@@ -239,7 +263,7 @@ class NutrientExtractor {
       return drafts[id] = _Draft(id, box);
     }
     if (created.contains(id)) return existing;
-    existing.flags.add(FieldFlag.duplicateRow);
+    duplicates.add(id);
     return null;
   }
 

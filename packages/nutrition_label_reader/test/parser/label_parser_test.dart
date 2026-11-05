@@ -851,6 +851,53 @@ void main() {
       expect(protein.flags, {FieldFlag.duplicateRow});
     });
 
+    test('a second full panel is ignored, the first wins', () {
+      const grid = FixtureGrid([
+        ['', 'Per 100 g'],
+        ['Energy', '1300 kJ / 311 kcal'],
+        ['Fat', '3.5 g'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '10 g'],
+        ['', 'Per 100 g'],
+        ['Energy', '1200 kJ / 287 kcal'],
+        ['Fat', '9 g'],
+        ['Carbohydrate', '50 g'],
+        ['Protein', '8 g'],
+      ]);
+      for (final entry in _shapes(grid).entries) {
+        final label = _parsed(entry.value);
+        expect(
+          label.warnings,
+          contains(LabelWarning.duplicatePanelIgnored),
+          reason: entry.key,
+        );
+        expect(label.nutrient(NutrientId.fat)!.per100!.value, 3.5);
+        expect(label.nutrient(NutrientId.energyKj)!.per100!.value, 1300);
+        for (final n in label.nutrients) {
+          expect(
+            n.flags.contains(FieldFlag.duplicateRow),
+            isFalse,
+            reason: '${entry.key} ${n.id}',
+          );
+        }
+      }
+    });
+
+    test('a second panel in another language is listed as ignored rows', () {
+      const grid = FixtureGrid([
+        ['', 'Per 100 g'],
+        ['Energy', '1300 kJ / 311 kcal'],
+        ['Fat', '3.5 g'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '10 g'],
+        ['Fett', '3.5 g'],
+        ['Kohlenhydrate', '60 g'],
+      ]);
+      final label = _parsed(grid.asSeparateBoxes());
+      expect(label.ignoredRows, ['Fett 3.5 g', 'Kohlenhydrate 60 g']);
+      expect(label.warnings, isEmpty);
+    });
+
     test('ignored names and unknown rows are listed, not mapped', () {
       const grid = FixtureGrid([
         ['', 'Per 100 g'],
