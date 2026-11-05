@@ -563,7 +563,10 @@ h3 {
   gap: var(--sp-4) var(--sp-16);
   padding-block: var(--sp-20);
   border-bottom: var(--hairline) solid var(--border);
-  transition: padding-left var(--dur) var(--ease);
+}
+
+.row > * {
+  transition: transform var(--dur) var(--ease);
 }
 
 .row .dot {
@@ -583,8 +586,8 @@ h3 {
 }
 
 @media (hover: hover) {
-  .row:hover {
-    padding-left: var(--sp-8);
+  .row:hover > * {
+    transform: translateX(var(--sp-8));
   }
 }
 
