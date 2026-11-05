@@ -10,3 +10,5 @@ export 'src/vocabulary/english.dart';
 export 'src/vocabulary/label_vocabulary.dart';
 export 'src/parser/label_parser.dart';
 export 'src/parser/parser_config.dart';
+export 'src/exceptions.dart';
+export 'src/model/reader_support.dart';
