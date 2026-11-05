@@ -164,8 +164,8 @@ class _Tiny implements LabelVocabulary {
 void main() {
   group('fixture 1: EU two columns, kJ and kcal, salt', () {
     _checkShapes(euTwoColumn, {
-      NutrientId.energyKj: (1046, 314),
-      NutrientId.energyKcal: (250, 75),
+      NutrientId.energyKj: (1300, 392),
+      NutrientId.energyKcal: (311, 94),
       NutrientId.fat: (3.5, 1.1),
       NutrientId.saturatedFat: (1.2, 0.4),
       NutrientId.carbohydrate: (60, 18),
@@ -216,8 +216,8 @@ void main() {
 
   group('fixture 2: EU one column per 100 g', () {
     _checkShapes(euOneColumn, {
-      NutrientId.energyKj: (1046, null),
-      NutrientId.energyKcal: (250, null),
+      NutrientId.energyKj: (1300, null),
+      NutrientId.energyKcal: (311, null),
       NutrientId.fat: (3.5, null),
       NutrientId.saturatedFat: (1.2, null),
       NutrientId.carbohydrate: (60, null),
@@ -281,8 +281,8 @@ void main() {
 
   group('fixture 6: kJ only', () {
     _checkShapes(kjOnly, {
-      NutrientId.energyKj: (1046, null),
-      NutrientId.energyKcal: (1046 / 4.184, null),
+      NutrientId.energyKj: (1300, null),
+      NutrientId.energyKcal: (1300 / 4.184, null),
       NutrientId.fat: (3.5, null),
       NutrientId.carbohydrate: (60, null),
       NutrientId.protein: (10, null),
@@ -304,8 +304,8 @@ void main() {
 
   group('fixture 7: no salt and no sodium', () {
     _checkShapes(missingSalt, {
-      NutrientId.energyKj: (1046, null),
-      NutrientId.energyKcal: (250, null),
+      NutrientId.energyKj: (1300, null),
+      NutrientId.energyKcal: (311, null),
       NutrientId.fat: (3.5, null),
       NutrientId.carbohydrate: (60, null),
       NutrientId.protein: (10, null),
@@ -433,7 +433,7 @@ void main() {
       );
       for (final id in [NutrientId.energyKj, NutrientId.energyKcal]) {
         final n = label.nutrient(id)!;
-        expect(n.flags, {FieldFlag.energyUnitsDisagree}, reason: '$id');
+        expect(n.flags, contains(FieldFlag.energyUnitsDisagree), reason: '$id');
         expect(n.per100!.isDerived, isFalse);
       }
       expect(label.nutrient(NutrientId.energyKcal)!.per100!.value, 200);
@@ -688,6 +688,72 @@ void main() {
         for (final q in [n.per100, n.perServing]) {
           expect(q?.rawText.contains('%') ?? false, isFalse);
         }
+      }
+    });
+  });
+
+  group('implausible values', () {
+    FixtureGrid per100(List<List<String>> rows) => FixtureGrid([
+      ['', 'Per 100 g'],
+      ['Energy', '1300 kJ / 311 kcal'],
+      ...rows,
+    ]);
+
+    test('a clean label has no plausibility flag', () {
+      final label = _parsed(euTwoColumn.asTable());
+      for (final n in label.nutrients) {
+        expect(n.flags.contains(FieldFlag.valueOutOfRange), isFalse);
+        expect(n.flags.contains(FieldFlag.macroSumExceeds100), isFalse);
+        expect(n.flags.contains(FieldFlag.subItemExceedsParent), isFalse);
+        expect(n.flags.contains(FieldFlag.energyDoesNotMatchMacros), isFalse);
+      }
+    });
+
+    test('saturates above fat is flagged on saturates', () {
+      final label = _parsed(
+        per100([
+          ['Fat', '3.5 g'],
+          ['of which saturates', '4.5 g'],
+          ['Carbohydrate', '60 g'],
+          ['Protein', '10 g'],
+        ]).asSeparateBoxes(),
+      );
+      expect(label.nutrient(NutrientId.saturatedFat)!.flags, {
+        FieldFlag.subItemExceedsParent,
+      });
+      expect(label.nutrient(NutrientId.fat)!.flags, isEmpty);
+    });
+
+    test('a value above 100 g and a macro sum above 100 are flagged', () {
+      final label = _parsed(
+        per100([
+          ['Fat', '3.5 g'],
+          ['Carbohydrate', '60 g'],
+          ['Protein', '150 g'],
+        ]).asSeparateBoxes(),
+      );
+      expect(label.nutrient(NutrientId.protein)!.flags, {
+        FieldFlag.valueOutOfRange,
+        FieldFlag.macroSumExceeds100,
+      });
+      expect(label.nutrient(NutrientId.protein)!.per100!.value, 150);
+      expect(label.nutrient(NutrientId.fat)!.flags, {
+        FieldFlag.macroSumExceeds100,
+      });
+    });
+
+    test('energy that does not match the macros is flagged', () {
+      final label = _parsed(
+        FixtureGrid([
+          ['', 'Per 100 g'],
+          ['Energy', '400 kJ / 96 kcal'],
+          ['Fat', '3.5 g'],
+          ['Carbohydrate', '60 g'],
+          ['Protein', '10 g'],
+        ]).asSeparateBoxes(),
+      );
+      for (final id in [NutrientId.energyKj, NutrientId.energyKcal]) {
+        expect(label.nutrient(id)!.flags, {FieldFlag.energyDoesNotMatchMacros});
       }
     });
   });

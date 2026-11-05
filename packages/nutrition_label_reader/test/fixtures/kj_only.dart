@@ -7,7 +7,7 @@ import 'fixture_builder.dart';
 const kjOnly = FixtureGrid([
   ['Test cereal'],
   ['', 'Per 100 g'],
-  ['Energy', '1046 kJ'],
+  ['Energy', '1300 kJ'],
   ['Fat', '3.5 g'],
   ['Carbohydrate', '60 g'],
   ['Protein', '10 g'],

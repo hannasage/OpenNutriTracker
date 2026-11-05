@@ -7,7 +7,7 @@ import 'fixture_builder.dart';
 const missingSalt = FixtureGrid([
   ['Test cereal'],
   ['', 'Per 100 g'],
-  ['Energy', '1046 kJ / 250 kcal'],
+  ['Energy', '1300 kJ / 311 kcal'],
   ['Fat', '3.5 g'],
   ['Carbohydrate', '60 g'],
   ['Protein', '10 g'],

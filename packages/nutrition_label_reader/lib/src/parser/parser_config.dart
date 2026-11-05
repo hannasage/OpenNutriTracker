@@ -18,6 +18,7 @@ class ParserConfig extends Equatable {
     this.maxGramsPer100 = 100,
     this.minEnergyKjPer100 = 0,
     this.minEnergyKcalPer100 = 0,
+    this.macroSumSlack = 0,
   });
 
   /// Matched nutrient names a panel needs. Unverified tuning value.
@@ -27,8 +28,9 @@ class ParserConfig extends Equatable {
   final int minValues;
 
   /// Relative gap between declared energy and energy from macros. The app uses
-  /// the same number for food data. Unverified for printed labels. Not used
-  /// before the plausibility step.
+  /// the same number for food data
+  /// (lib/features/add_meal/domain/entity/meal_nutriments_entity.dart:404).
+  /// Unverified for printed labels.
   final double atwaterTolerance;
 
   /// Relative gap between kJ and kcal read from one row. Unverified tuning
@@ -96,6 +98,11 @@ class ParserConfig extends Equatable {
     }
   }
 
+  /// Grams added to 100 before the macro sum counts as too high. Zero means no
+  /// slack. No slack is known, so the default is zero. Unverified tuning
+  /// value.
+  final double macroSumSlack;
+
   @override
   List<Object?> get props => [
     minNutrientNames,
@@ -108,5 +115,6 @@ class ParserConfig extends Equatable {
     maxGramsPer100,
     minEnergyKjPer100,
     minEnergyKcalPer100,
+    macroSumSlack,
   ];
 }

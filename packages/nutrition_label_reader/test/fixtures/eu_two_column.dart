@@ -8,7 +8,7 @@ const euTwoColumn = FixtureGrid([
   ['Test cereal'],
   ['Serving size', '30 g'],
   ['', 'Per 100 g', 'Per serving'],
-  ['Energy', '1046 kJ / 250 kcal', '314 kJ / 75 kcal'],
+  ['Energy', '1300 kJ / 311 kcal', '392 kJ / 94 kcal'],
   ['Fat', '3.5 g', '1.1 g'],
   ['of which saturates', '1.2 g', '0.4 g'],
   ['Carbohydrate', '60 g', '18 g'],
