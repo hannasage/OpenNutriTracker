@@ -88,10 +88,60 @@ void main() {
       expect(NumberLexer.read('1234,567').status, NumberStatus.value);
     });
 
-    test('a dot with three digits is a decimal', () {
-      final r = NumberLexer.read('1.234');
-      expect(r.status, NumberStatus.value);
-      expect(r.value, 1.234);
+    test('a dot before exactly three digits reads two ways', () {
+      for (final text in ['1.046', '1.234', '12.345', '123.456']) {
+        final r = NumberLexer.read(text);
+        expect(r.status, NumberStatus.ambiguous, reason: text);
+        expect(r.value, isNull, reason: text);
+      }
+      final r = NumberLexer.read('1.046');
+      expect(r.readings, [1.046, 1046]);
+    });
+
+    test('a dot takes the only plausible reading', () {
+      final big = NumberLexer.read('1.046', isPlausible: (v) => v > 100);
+      expect(big.status, NumberStatus.value);
+      expect(big.value, 1046);
+      final small = NumberLexer.read('1.046', isPlausible: (v) => v <= 100);
+      expect(small.status, NumberStatus.value);
+      expect(small.value, 1.046);
+    });
+
+    test('a dot stays ambiguous when both or neither reading fits', () {
+      expect(
+        NumberLexer.read('1.046', isPlausible: (v) => v < 4000).status,
+        NumberStatus.ambiguous,
+      );
+      expect(
+        NumberLexer.read('1.046', isPlausible: (v) => false).status,
+        NumberStatus.ambiguous,
+      );
+    });
+
+    test('0.125 reads two ways, unlike 0,125', () {
+      final dot = NumberLexer.read('0.125');
+      expect(dot.status, NumberStatus.ambiguous);
+      expect(dot.readings, [0.125, 125]);
+      expect(NumberLexer.read('0,125').value, 0.125);
+    });
+
+    test('other dot numbers stay decimals', () {
+      const cases = <String, double>{
+        '1.5': 1.5,
+        '0.25': 0.25,
+        '12.5': 12.5,
+        '1.2345': 1.2345,
+        '1234.567': 1234.567,
+        '00.125': 0.125,
+        '.125': 0.125,
+        '1.05': 1.05,
+        '10.0': 10,
+      };
+      cases.forEach((text, expected) {
+        final r = NumberLexer.read(text);
+        expect(r.status, NumberStatus.value, reason: text);
+        expect(r.value, expected, reason: text);
+      });
     });
   });
 

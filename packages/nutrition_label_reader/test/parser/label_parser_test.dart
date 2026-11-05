@@ -677,6 +677,59 @@ void main() {
       expect(fat.flags, {FieldFlag.ambiguousNumber});
     });
 
+    test('1.046 kJ reads 1046 when the config sets an energy floor', () {
+      final doc = energy('1.046 kJ / 250 kcal').asSeparateBoxes();
+      final plain = _parsed(doc).nutrient(NutrientId.energyKj)!;
+      expect(plain.per100!.value, isNull);
+      expect(plain.flags, {FieldFlag.ambiguousNumber});
+      final floor = _parsed(
+        doc,
+        parser: const LabelParser(config: ParserConfig(minEnergyKjPer100: 100)),
+      ).nutrient(NutrientId.energyKj)!;
+      expect(floor.per100!.value, 1046);
+      expect(floor.flags, isEmpty);
+    });
+
+    test('1.046 g of fat per 100 g can only be 1.046', () {
+      const grid = FixtureGrid([
+        ['', 'Per 100 g'],
+        ['Energy', '1046 kJ / 250 kcal'],
+        ['Fat', '1.046 g'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '10 g'],
+      ]);
+      final fat = _parsed(grid.asSeparateBoxes()).nutrient(NutrientId.fat)!;
+      expect(fat.per100!.value, 1.046);
+    });
+
+    test('1.046 g of fat per serving stays ambiguous', () {
+      const grid = FixtureGrid([
+        ['', 'Per serving'],
+        ['Energy', '1046 kJ / 250 kcal'],
+        ['Fat', '1.046 g'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '10 g'],
+      ]);
+      final fat = _parsed(grid.asSeparateBoxes()).nutrient(NutrientId.fat)!;
+      expect(fat.perServing!.value, isNull);
+      expect(fat.flags, {FieldFlag.ambiguousNumber});
+    });
+
+    test('0.125 g per serving stays ambiguous without a floor', () {
+      const grid = FixtureGrid([
+        ['', 'Per serving'],
+        ['Energy', '1046 kJ / 250 kcal'],
+        ['Fat', '3 g'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '0.125 g'],
+      ]);
+      final protein = _parsed(
+        grid.asSeparateBoxes(),
+      ).nutrient(NutrientId.protein)!;
+      expect(protein.perServing!.value, isNull);
+      expect(protein.flags, {FieldFlag.ambiguousNumber});
+    });
+
     test('a cell with two quantities for one nutrient is ambiguous', () {
       const grid = FixtureGrid([
         ['', 'Per 100 g'],

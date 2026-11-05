@@ -108,8 +108,8 @@ void main() {
       final sodium = read('0.35 g', NutrientId.sodium);
       expect(sodium.quantity.value, 350);
       expect(sodium.quantity.unit, LabelUnit.mg);
-      final vitamin = read('0.005 mg', NutrientId.vitaminD);
-      expect(vitamin.quantity.value, 5);
+      final vitamin = read('0.01 mg', NutrientId.vitaminD);
+      expect(vitamin.quantity.value, 10);
       expect(vitamin.quantity.unit, LabelUnit.ug);
       final iron = read('1500 µg', NutrientId.iron);
       expect(iron.quantity.value, 1.5);
@@ -196,6 +196,21 @@ void main() {
       );
       expect(mg.quantity.value, 1.234);
       expect(mg.quantity.unit, LabelUnit.g);
+    });
+
+    test('a dot before three digits is ambiguous, and a floor decides', () {
+      final plain = read('1.046 kJ', NutrientId.energyKj);
+      expect(plain.status, NumberStatus.ambiguous);
+      expect(plain.quantity.value, isNull);
+      expect(plain.flags, {FieldFlag.ambiguousNumber});
+      final floor = QuantityLexer.read(
+        '1.046 kJ',
+        NutrientId.energyKj,
+        isPlausible: (v) => v >= 100 && v <= 4000,
+      );
+      expect(floor.status, NumberStatus.value);
+      expect(floor.quantity.value, 1046);
+      expect(floor.flags, isEmpty);
     });
 
     test('text without digits is not numeric', () {

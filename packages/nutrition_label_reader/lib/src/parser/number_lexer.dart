@@ -48,11 +48,9 @@ class NumberReading {
 /// Rules:
 /// - `1,5` and `1.5` are 1.5.
 /// - With both marks, the last mark is the decimal mark.
-/// - One comma and exactly three digits (`1,234`) reads two ways. The caller
-///   may pass [isPlausible] to decide. When both readings are plausible, or
-///   neither is, the number stays ambiguous.
-/// - A dot is always a decimal mark when it is the only kind of mark and it
-///   occurs once.
+/// - One comma or one dot and exactly three digits (`1,234`, `1.046`) reads
+///   two ways. The caller may pass [isPlausible] to decide. When both readings
+///   are plausible, or neither is, the number stays ambiguous.
 /// - A letter is never turned into a digit.
 class NumberLexer {
   const NumberLexer._();
@@ -145,12 +143,14 @@ class NumberLexer {
     if (tail.isEmpty) return null;
     final decimal = _finite('${head.isEmpty ? '0' : head}.$tail');
     if (decimal == null) return null;
-    final couldBeThousands =
-        mark == ',' &&
-        tail.length == 3 &&
+    // A group of three digits after the only mark could be a thousands group.
+    // A comma head may not start with 0. A dot head may be a single 0, so
+    // 0.125 reads two ways. That asymmetry is deliberate (owner decision).
+    final headFits =
         head.isNotEmpty &&
         head.length <= 3 &&
-        !head.startsWith('0');
+        (!head.startsWith('0') || (mark == '.' && head == '0'));
+    final couldBeThousands = tail.length == 3 && headFits;
     if (!couldBeThousands) return decimal;
     final thousands = _finite('$head$tail');
     if (thousands == null) return decimal;
