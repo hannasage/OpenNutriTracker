@@ -24,6 +24,17 @@ class LabelMatch {
   bool get isEnergy => id == NutrientId.energyKj || id == NutrientId.energyKcal;
 }
 
+/// One place a phrase occurs in folded text.
+class PhraseMatch {
+  const PhraseMatch(this.start, this.end, this.phrase);
+
+  final int start;
+  final int end;
+  final String phrase;
+
+  int get length => end - start;
+}
+
 /// Matches row labels to nutrients with exact phrases. No fuzzy matching.
 class LabelMatcher {
   const LabelMatcher(this.vocabulary);
@@ -68,9 +79,16 @@ class LabelMatcher {
   }
 
   /// True when [text] holds any of [phrases] as a whole word or number.
-  bool containsPhrase(String text, List<String> phrases) {
+  bool containsPhrase(String text, List<String> phrases) =>
+      phraseMatches(text, phrases).isNotEmpty;
+
+  /// Every place a phrase of [phrases] occurs in [text] as a whole word or
+  /// number. Positions are in the folded text (see [foldForMatching]). Matches
+  /// may overlap.
+  List<PhraseMatch> phraseMatches(String text, List<String> phrases) {
     final folded = foldForMatching(text);
-    if (folded.isEmpty) return false;
+    final matches = <PhraseMatch>[];
+    if (folded.isEmpty) return matches;
     for (final raw in phrases) {
       final phrase = foldForMatching(raw);
       if (phrase.isEmpty) continue;
@@ -81,11 +99,13 @@ class LabelMatcher {
         final before = at == 0 ? '' : folded[at - 1];
         final end = at + phrase.length;
         final after = end >= folded.length ? '' : folded[end];
-        if (!_isWordChar(before) && !_isWordChar(after)) return true;
+        if (!_isWordChar(before) && !_isWordChar(after)) {
+          matches.add(PhraseMatch(at, end, phrase));
+        }
         from = at + 1;
       }
     }
-    return false;
+    return matches;
   }
 
   static bool _isWordChar(String char) =>

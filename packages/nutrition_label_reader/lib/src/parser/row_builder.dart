@@ -1,8 +1,7 @@
 import '../model/label_rect.dart';
 import '../model/recognized_document.dart';
 import 'label_row.dart';
-import 'text_normalizer.dart';
-import 'unit_lexer.dart';
+import 'quantity_scanner.dart';
 
 /// Rebuilds rows from loose text boxes. Used for sources that give no tables.
 class RowBuilder {
@@ -85,15 +84,11 @@ class RowBuilder {
 ///
 /// Recognizers on some platforms return a whole line as one box. A token made
 /// by a split has an estimated x: the centre of its characters inside the box.
+/// Quantities joined by a slash, such as `1046 kJ / 250 kcal`, stay together.
 /// Apply it to nutrient rows. Do not apply it to header rows, which hold
 /// phrases such as `per 100 g`.
 class LineSplitter {
   const LineSplitter._();
-
-  static final _word = RegExp(r'\S+');
-  static final _pureNumber = RegExp(r'^<?[.,]?[0-9][0-9.,]*$');
-  static final _numberStart = RegExp(r'^<?[.,]?[0-9]');
-  static const _absentWords = {'trace', 'nil', 'n/a'};
 
   static LabelRow split(LabelRow row) {
     final tokens = <LabelToken>[];
@@ -108,52 +103,8 @@ class LineSplitter {
 
   static List<LabelToken> _splitToken(LabelToken token) {
     final text = token.text;
-    final folded = normalizeText(text);
-    final words = _word.allMatches(folded).toList();
-    if (words.isEmpty) return [token];
-    String wordAt(int i) => words[i].group(0)!;
-
-    final segments = <_Segment>[];
-    var i = 0;
-    while (i < words.length) {
-      final word = wordAt(i);
-      var end = i;
-      var isQuantity = false;
-      if (word == '<' &&
-          i + 1 < words.length &&
-          _pureNumber.hasMatch(wordAt(i + 1))) {
-        isQuantity = true;
-        end = i + 1;
-      } else if (_numberStart.hasMatch(word)) {
-        isQuantity = true;
-      } else if (_absentWords.contains(word.toLowerCase()) ||
-          (word == '-' && i > 0)) {
-        isQuantity = true;
-      }
-      if (isQuantity) {
-        final last = wordAt(end);
-        if (_pureNumber.hasMatch(last) && end + 1 < words.length) {
-          final next = wordAt(end + 1);
-          if (next == '%' || UnitLexer.parse(next) != null) end++;
-        }
-        segments.add(_Segment(words[i].start, words[end].end, true));
-        i = end + 1;
-      } else {
-        final previous = segments.isEmpty ? null : segments.last;
-        if (previous != null && !previous.isQuantity) {
-          segments[segments.length - 1] = _Segment(
-            previous.start,
-            words[i].end,
-            false,
-          );
-        } else {
-          segments.add(_Segment(words[i].start, words[i].end, false));
-        }
-        i++;
-      }
-    }
+    final segments = QuantityScanner.segments(text, joinSlash: true);
     if (segments.length <= 1) return [token];
-
     final length = text.length;
     final box = token.box;
     return [
@@ -170,11 +121,4 @@ class LineSplitter {
         ),
     ];
   }
-}
-
-class _Segment {
-  const _Segment(this.start, this.end, this.isQuantity);
-  final int start;
-  final int end;
-  final bool isQuantity;
 }
