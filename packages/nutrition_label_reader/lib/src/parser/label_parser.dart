@@ -5,6 +5,7 @@ import '../vocabulary/english.dart';
 import '../vocabulary/label_matcher.dart';
 import '../vocabulary/label_vocabulary.dart';
 import 'column_detector.dart';
+import 'energy_rules.dart';
 import 'label_row.dart';
 import 'nutrient_extractor.dart';
 import 'parser_config.dart';
@@ -112,7 +113,7 @@ class LabelParser {
 
     return LabelParsed(
       ParsedLabel(
-        nutrients: extraction.nutrients,
+        nutrients: applyEnergyRules(extraction.nutrients, config),
         primaryBasis: extraction.primaryBasis,
         languageTag: pick.vocabulary.languageTag,
         serving: ServingParser(matcher).parse(rows),

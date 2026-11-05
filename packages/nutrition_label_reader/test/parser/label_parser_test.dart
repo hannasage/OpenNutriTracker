@@ -6,6 +6,7 @@ import 'package:nutrition_label_reader/nutrition_label_reader.dart';
 import '../fixtures/eu_one_column.dart';
 import '../fixtures/eu_two_column.dart';
 import '../fixtures/fixture_builder.dart';
+import '../fixtures/kj_only.dart';
 import '../fixtures/us_style.dart';
 
 const _parser = LabelParser();
@@ -273,6 +274,110 @@ void main() {
         expect(calories.flags, contains(FieldFlag.unitMissing));
         expect(calories.review, FieldReview.checkThis);
       }
+    });
+  });
+
+  group('fixture 6: kJ only', () {
+    _checkShapes(kjOnly, {
+      NutrientId.energyKj: (1046, null),
+      NutrientId.energyKcal: (1046 / 4.184, null),
+      NutrientId.fat: (3.5, null),
+      NutrientId.carbohydrate: (60, null),
+      NutrientId.protein: (10, null),
+      NutrientId.salt: (0.5, null),
+    });
+
+    test('derives kcal and says so', () {
+      for (final entry in _shapes(kjOnly).entries) {
+        final label = _parsed(entry.value);
+        final kcal = label.nutrient(NutrientId.energyKcal)!;
+        expect(kcal.per100!.isDerived, isTrue, reason: entry.key);
+        expect(kcal.flags, contains(FieldFlag.derivedFromOtherUnit));
+        expect(kcal.review, FieldReview.checkThis);
+        expect(label.nutrient(NutrientId.energyKj)!.per100!.isDerived, isFalse);
+      }
+    });
+  });
+
+  group('energy rows', () {
+    FixtureGrid energy(List<List<String>> rows) => FixtureGrid([
+      ['', 'Per 100 g'],
+      ...rows,
+      ['Fat', '3.5 g'],
+      ['Carbohydrate', '60 g'],
+      ['Protein', '10 g'],
+    ]);
+
+    test('kcal first and kJ second give the same values', () {
+      for (final text in ['1046 kJ / 250 kcal', '250 kcal / 1046 kJ']) {
+        final label = _parsed(
+          energy([
+            ['Energy', text],
+          ]).asSeparateBoxes(),
+        );
+        expect(label.nutrient(NutrientId.energyKj)!.per100!.value, 1046);
+        expect(label.nutrient(NutrientId.energyKcal)!.per100!.value, 250);
+        expect(label.nutrient(NutrientId.energyKj)!.flags, isEmpty);
+        expect(label.nutrient(NutrientId.energyKcal)!.flags, isEmpty);
+      }
+    });
+
+    test('energy split across two rows is joined', () {
+      final grid = energy([
+        ['Energy', '1046 kJ'],
+        ['', '250 kcal'],
+      ]);
+      for (final entry in _shapes(grid).entries) {
+        final label = _parsed(entry.value);
+        expect(
+          label.nutrient(NutrientId.energyKj)!.per100!.value,
+          1046,
+          reason: entry.key,
+        );
+        expect(
+          label.nutrient(NutrientId.energyKcal)!.per100!.value,
+          250,
+          reason: entry.key,
+        );
+        expect(
+          label.nutrient(NutrientId.energyKcal)!.per100!.isDerived,
+          isFalse,
+        );
+        expect(label.ignoredRows, isEmpty, reason: entry.key);
+      }
+    });
+
+    test('a value-only row after a non-energy row is not energy', () {
+      const grid = FixtureGrid([
+        ['', 'Per 100 g'],
+        ['Energy', '1046 kJ / 250 kcal'],
+        ['Fat', '3.5 g'],
+        ['', '250 kcal'],
+        ['Carbohydrate', '60 g'],
+        ['Protein', '10 g'],
+      ]);
+      final label = _parsed(grid.asSeparateBoxes());
+      expect(label.ignoredRows, ['250 kcal']);
+      expect(label.nutrient(NutrientId.energyKcal)!.flags, isEmpty);
+    });
+
+    test('kJ and kcal that disagree are flagged and kept', () {
+      final label = _parsed(
+        energy([
+          ['Energy', '1046 kJ / 200 kcal'],
+        ]).asSeparateBoxes(),
+      );
+      for (final id in [NutrientId.energyKj, NutrientId.energyKcal]) {
+        final n = label.nutrient(id)!;
+        expect(n.flags, {FieldFlag.energyUnitsDisagree}, reason: '$id');
+        expect(n.per100!.isDerived, isFalse);
+      }
+      expect(label.nutrient(NutrientId.energyKcal)!.per100!.value, 200);
+    });
+
+    test('a US Calories value with no unit is not converted', () {
+      final label = _parsed(usStyle.asSeparateBoxes());
+      expect(label.nutrient(NutrientId.energyKj), isNull);
     });
   });
 

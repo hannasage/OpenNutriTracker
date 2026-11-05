@@ -32,7 +32,7 @@ class ParserConfig extends Equatable {
   final double atwaterTolerance;
 
   /// Relative gap between kJ and kcal read from one row. Unverified tuning
-  /// value. Not used before the energy step.
+  /// value. Nothing in the repo or the notes says what real labels need.
   final double energyUnitTolerance;
 
   /// A box joins a row within this factor times the median box height.

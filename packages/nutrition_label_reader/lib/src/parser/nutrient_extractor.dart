@@ -60,8 +60,11 @@ class NutrientExtractor {
     final names = <String>{};
     var valueMatches = 0;
     var percentSeen = false;
+    LabelMatch? previousEnergy;
 
     for (var i = 0; i < rows.length; i++) {
+      final carried = previousEnergy;
+      previousEnergy = null;
       if (headerRows.contains(i)) continue;
       final row = rows[i];
       if (matcher.containsPhrase(
@@ -71,7 +74,16 @@ class NutrientExtractor {
         continue;
       }
       final parts = _partsOf(row);
-      final match = matcher.match(parts.label);
+      var match = matcher.match(parts.label);
+      // Energy can run over two rows: the kJ value, then the kcal value on a
+      // row of its own with no label.
+      if (match == null &&
+          carried != null &&
+          parts.label.isEmpty &&
+          parts.values.isNotEmpty &&
+          _onlyEnergyUnits(parts.values)) {
+        match = carried;
+      }
       if (match == null) {
         if (parts.values.isNotEmpty) ignored.add(row.text);
         continue;
@@ -81,6 +93,7 @@ class NutrientExtractor {
         continue;
       }
       names.add(match.isEnergy ? 'energy' : match.id!.name);
+      if (match.isEnergy) previousEnergy = match;
       if (parts.values.isEmpty) {
         ignored.add(row.text);
         continue;
@@ -249,6 +262,17 @@ class NutrientExtractor {
       if (column.kind == ColumnKind.perServing) return LabelBasis.perServing;
     }
     return LabelBasis.unknown;
+  }
+
+  static bool _onlyEnergyUnits(List<LabelToken> values) {
+    final quantities = [
+      for (final token in values) ...QuantityScanner.quantities(token.text),
+    ];
+    return quantities.isNotEmpty &&
+        quantities.every((q) {
+          final unit = QuantityScanner.unitOf(q);
+          return unit == LabelUnit.kj || unit == LabelUnit.kcal;
+        });
   }
 
   static _RowParts _partsOf(LabelRow row) {
