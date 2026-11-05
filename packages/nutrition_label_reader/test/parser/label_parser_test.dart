@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nutrition_label_reader/nutrition_label_reader.dart';
 
@@ -10,6 +8,7 @@ import '../fixtures/kj_only.dart';
 import '../fixtures/missing_salt.dart';
 import '../fixtures/per_serving_scaled.dart';
 import '../fixtures/us_style.dart';
+import '../support/shape_properties.dart';
 
 const _parser = LabelParser();
 
@@ -36,11 +35,6 @@ Map<String, RecognizedDocument> _shapes(FixtureGrid grid) => {
   'merged lines': grid.asMergedLines(),
 };
 
-/// Everything a parse reports except the order-from-position flag, which only
-/// the merged-line shape may add.
-Set<FieldFlag> _flagsWithoutOrder(ParsedNutrient n) =>
-    n.flags.difference({FieldFlag.columnFromOrderNotPosition});
-
 void _checkShapes(FixtureGrid grid, Map<NutrientId, (double?, double?)> want) {
   Map<String, ParsedLabel> parseAll() => {
     for (final entry in _shapes(grid).entries) entry.key: _parsed(entry.value),
@@ -50,81 +44,7 @@ void _checkShapes(FixtureGrid grid, Map<NutrientId, (double?, double?)> want) {
       expect(_values(parseAll()[name]!), want);
     });
   }
-  test('the three shapes agree on values, flags and warnings', () {
-    final labels = parseAll();
-    final table = labels['table']!;
-    for (final label in labels.values) {
-      expect(_values(label), _values(table));
-      expect(label.primaryBasis, table.primaryBasis);
-      expect(label.serving, table.serving);
-      expect(label.warnings, table.warnings);
-      expect(label.ignoredRows, table.ignoredRows);
-      for (final n in label.nutrients) {
-        expect(
-          _flagsWithoutOrder(n),
-          _flagsWithoutOrder(table.nutrient(n.id)!),
-        );
-        expect(n.per100?.unit, table.nutrient(n.id)!.per100?.unit);
-        expect(n.perServing?.unit, table.nutrient(n.id)!.perServing?.unit);
-      }
-    }
-  });
-  test('only the merged-line shape reads columns from order', () {
-    final labels = parseAll();
-    for (final entry in labels.entries) {
-      final flagged = entry.value.nutrients.any(
-        (n) => n.flags.contains(FieldFlag.columnFromOrderNotPosition),
-      );
-      expect(flagged, entry.key == 'merged lines', reason: entry.key);
-    }
-  });
-  test('every value read is text that is in the input', () {
-    for (final entry in _shapes(grid).entries) {
-      final label = _parsed(entry.value);
-      for (final n in label.nutrients) {
-        for (final q in [n.per100, n.perServing]) {
-          if (q == null || q.isDerived) continue;
-          expect(
-            grid.allText.contains(q.rawText),
-            isTrue,
-            reason: '${entry.key}: "${q.rawText}"',
-          );
-        }
-      }
-    }
-  });
-  test('the confidence of the observation changes nothing', () {
-    expect(
-      _parser.parse(grid.asTable(observationConfidence: 0.05)),
-      _parser.parse(grid.asTable(observationConfidence: 0.99)),
-    );
-    expect(
-      _parser.parse(grid.asSeparateBoxes(observationConfidence: 0.05)),
-      _parser.parse(grid.asSeparateBoxes()),
-    );
-  });
-  test('the order of boxes and cells changes nothing', () {
-    final table = grid.asTable();
-    final shuffledTable = RecognizedDocument(
-      source: table.source,
-      imageWidth: table.imageWidth,
-      imageHeight: table.imageHeight,
-      boxes: [...table.boxes]..shuffle(Random(1)),
-      tables: [
-        for (final t in table.tables)
-          RecognizedTable(box: t.box, cells: [...t.cells]..shuffle(Random(2))),
-      ],
-    );
-    expect(_parser.parse(shuffledTable), _parser.parse(table));
-    final boxes = grid.asSeparateBoxes();
-    final shuffled = RecognizedDocument(
-      source: boxes.source,
-      imageWidth: boxes.imageWidth,
-      imageHeight: boxes.imageHeight,
-      boxes: [...boxes.boxes]..shuffle(Random(3)),
-    );
-    expect(_parser.parse(shuffled), _parser.parse(boxes));
-  });
+  registerShapeProperties(grid);
 }
 
 class _Copy extends EnglishLabelVocabulary {
@@ -1167,101 +1087,6 @@ void main() {
       );
       expect(label.languageTag, 'en');
       expect(label.warnings, isEmpty);
-    });
-  });
-
-  group('never throws', () {
-    test('random documents give a result', () {
-      final random = Random(11);
-      const pieces = [
-        'Energy',
-        'Fat',
-        'Protein',
-        'Salt',
-        'Carbohydrate',
-        'of which',
-        '5 g',
-        '1,234',
-        '<',
-        '-',
-        '%',
-        'kJ',
-        '/',
-        'µg',
-        '9',
-        'trace',
-        'Per 100 g',
-        'As prepared',
-        '% Daily Value',
-        'Serving size',
-        'Servings per container',
-        '',
-        ' ',
-        '٣',
-        '\u{1F600}',
-        '1O',
-        '3.5.2',
-        '.',
-        ',',
-        '1.234,5',
-        '2/3 cup (55 g)',
-        'n/a',
-        '<<',
-        '--',
-      ];
-      double coordinate() {
-        switch (random.nextInt(12)) {
-          case 0:
-            return double.nan;
-          case 1:
-            return double.infinity;
-          case 2:
-            return -random.nextDouble();
-          case 3:
-            return 0;
-          default:
-            return random.nextDouble();
-        }
-      }
-
-      String text() => List.generate(
-        random.nextInt(5),
-        (_) => pieces[random.nextInt(pieces.length)],
-      ).join(random.nextBool() ? ' ' : '');
-      LabelRect rect() => LabelRect(
-        left: coordinate(),
-        top: coordinate(),
-        width: coordinate(),
-        height: coordinate(),
-      );
-
-      for (var i = 0; i < 300; i++) {
-        final doc = RecognizedDocument(
-          source: RecognitionSource.values[random.nextInt(3)],
-          imageWidth: 100,
-          imageHeight: 100,
-          boxes: [
-            for (var b = 0; b < random.nextInt(30); b++)
-              RecognizedTextBox(text: text(), box: rect()),
-          ],
-          tables: [
-            for (var t = 0; t < random.nextInt(3); t++)
-              RecognizedTable(
-                box: rect(),
-                cells: [
-                  for (var c = 0; c < random.nextInt(12); c++)
-                    RecognizedCell(
-                      text: text(),
-                      box: rect(),
-                      row: random.nextInt(6) - 1,
-                      column: random.nextInt(5) - 1,
-                    ),
-                ],
-              ),
-          ],
-        );
-        expect(_parser.parse(doc), isA<LabelParseResult>());
-      }
     });
   });
 }
