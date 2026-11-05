@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenNutriTracker: calorie and nutrient diary for Android and iOS</title>
+  <meta name="description" content="OpenNutriTracker is an open-source calorie and nutrient diary for Android and iOS. No account, no ads, no paid tier. Your diary stays on your phone.">
+  <meta name="theme-color" content="#f7f4ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b1a18" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="OpenNutriTracker: calorie and nutrient diary">
+  <meta property="og:description" content="Open-source calorie and nutrient diary for Android and iOS. No account, no ads, no paid tier.">
+  <meta property="og:image" content="assets/img/icon-512.png">
+  <meta property="og:image:alt" content="The OpenNutriTracker logo: green rings with a spoon in the center.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/icon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/icon-180.png">
+  <link rel="preload" href="assets/fonts/Nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="notice" role="note">
+      <div class="wrap">
+        <strong>Unofficial community proposal.</strong>
+        <span>This is not the maintainer's site. It does not speak for the project.</span>
+      </div>
+    </div>
+    <div class="wrap">
+      <a class="brand" href="#top">
+        <img src="assets/img/icon-96.png" width="44" height="44" alt="">
+        <span>OpenNutriTracker</span>
+      </a>
+      <nav class="site-nav" aria-label="Page sections">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#screenshots">Screenshots</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#contribute">Contribute</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="wrap">
+        <div class="hero-copy">
+          <p class="eyebrow enter">Free. Open. Cited.</p>
+          <h1 id="hero-title" class="enter">Log your food. Keep the diary on your phone.</h1>
+          <p class="lede enter">OpenNutriTracker is an open-source calorie and nutrient diary for Android and iOS. It has no account, no ads, and no paid tier.</p>
+          <div class="stores enter">
+            <a class="store" href="https://apps.apple.com/us/app/opennutritracker/id6451490901"><img src="assets/img/appstore_banner.png" width="159" height="54" alt="Download on the App Store"></a>
+            <a class="store" href="https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker"><img src="assets/img/playstore_banner.png" width="184" height="54" alt="Get it on Google Play"></a>
+          </div>
+          <p class="source-link enter"><a href="https://github.com/simonoppowa/OpenNutriTracker">Read the source code on GitHub</a></p>
+        </div>
+        <div class="hero-visual enter">
+          <img class="shot shot--main" src="assets/img/screen-1.webp" width="540" height="1102" alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity">
+          <img class="shot shot--back" src="assets/img/screen-5.webp" width="540" height="1102" alt="" aria-hidden="true">
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="wrap split">
+        <div class="split__head">
+          <h2 id="features-title">What it does</h2>
+          <p class="intro">The app works out a calorie target and a macro target. Calories are measured in kcal. Macros are carbs, fat, and protein. It uses your height, weight, age, and activity level. You log food and drink against that target.</p>
+          <ul class="macro-key" aria-label="Macro colors used in the app">
+            <li><span class="dot dot--carbs" aria-hidden="true"></span>Carbs</li>
+            <li><span class="dot dot--fat" aria-hidden="true"></span>Fat</li>
+            <li><span class="dot dot--protein" aria-hidden="true"></span>Protein</li>
+          </ul>
+        </div>
+        <ul class="rows">
+          <li class="row">
+            <span class="dot dot--carbs" aria-hidden="true"></span>
+            <h3>Food logging</h3>
+            <p>Search for a food, scan its barcode, or add kcal as a plain number. Food data comes from Open Food Facts, USDA FoodData Central, and the German BLS food table.</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--fat" aria-hidden="true"></span>
+            <h3>Food diary</h3>
+            <p>A calendar diary with Breakfast, Lunch, Dinner, and Snack. Each meal can have its own kcal target.</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--protein" aria-hidden="true"></span>
+            <h3>Trends</h3>
+            <p>See your day streak, your calories against your goal line, your macro averages, your water, and your weight over time.</p>
+          </li>
+          <li class="row">
+            <span class="dot"  aria-hidden="true"></span>
+            <h3>Nutrient panel</h3>
+            <p>Day and week views for ten nutrients, including fiber, sodium, iron, and vitamin D. Optional bars show where you sit against the reference range.</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--carbs" aria-hidden="true"></span>
+            <h3>Meals and recipes</h3>
+            <p>Save a custom meal or a reusable recipe. Add a photo, a brand, and a barcode.</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--fat" aria-hidden="true"></span>
+            <h3>Activities and weight</h3>
+            <p>Log workouts from a catalog or make your own. Follow your weight trend against a target.</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--protein" aria-hidden="true"></span>
+            <h3>Water and fasting</h3>
+            <p>A water counter sits on the home screen. An optional timer supports intermittent fasting, which means eating only within set hours. The timer opens with a content warning.</p>
+          </li>
+          <li class="row">
+            <span class="dot" aria-hidden="true"></span>
+            <h3>Themes and units</h3>
+            <p>Pick one of sixteen built-in themes. On Android 12 and later, you can use your system accent color. Show energy in kcal (kilocalories) or kJ (kilojoules).</p>
+          </li>
+          <li class="row">
+            <span class="dot dot--carbs" aria-hidden="true"></span>
+            <h3>Export and import</h3>
+            <p>Export your diary as JSON or CSV files. These are plain file formats that other tools can read. Import JSON again later. Share a meal as a QR code.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section band" id="screenshots" aria-labelledby="shots-title">
+      <div class="wrap">
+        <div class="gallery-head">
+          <div>
+            <h2 id="shots-title">Six screens</h2>
+            <p class="gallery-note">Screenshots show a demo profile with generated data.</p>
+          </div>
+          <div class="gallery-controls" data-gallery-controls hidden>
+            <button type="button" data-dir="-1" aria-label="Previous screenshots">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+            <button type="button" data-dir="1" aria-label="Next screenshots">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="gallery" role="region" aria-label="App screenshots. Scroll sideways or use the arrow keys." tabindex="0" data-gallery>
+        <ul class="gallery__list">
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-1.webp" width="540" height="1102" loading="lazy" alt="Home screen showing calories left on a progress ring, carbs, fat and protein against their targets, and the day's logged activity">
+              <figcaption><strong>Home</strong>Where the day stands</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-2.webp" width="540" height="1102" loading="lazy" alt="Adding food to lunch, with recently logged items ready to re-add in one tap and a barcode scanner in the search field">
+              <figcaption><strong>Add food</strong>Log it again in one tap</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-3.webp" width="540" height="1102" loading="lazy" alt="Food detail showing the full nutrition table with saturated fat, sugar and fiber, plus an expanded micronutrient panel">
+              <figcaption><strong>Food detail</strong>Down to the micronutrient</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-4.webp" width="540" height="1102" loading="lazy" alt="Diary showing a month calendar with each day marked by how it went, and the selected day's calories and macro rings below">
+              <figcaption><strong>Diary</strong>Every day you have logged</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-5.webp" width="540" height="1102" loading="lazy" alt="Trends showing a seven-day streak, calories charted against the goal line, and daily macro averages">
+              <figcaption><strong>Trends</strong>Calories against your goal</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img class="shot" src="assets/img/screen-6.webp" width="540" height="1102" loading="lazy" alt="Profile screen showing BMI, activity level, weight goal and weekly rate">
+              <figcaption><strong>You</strong>Goals and body metrics</figcaption>
+            </figure>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="privacy" aria-labelledby="privacy-title">
+      <div class="statement">
+        <div class="wrap">
+          <h2 id="privacy-title" class="statement__eyebrow">Private and open</h2>
+          <p>
+            <span class="statement__line">No account.</span>
+            <span class="statement__line">No sign-in.</span>
+            <span class="statement__line">No analytics.</span>
+            <span class="statement__line">No ads.</span>
+          </p>
+          <p class="statement__sub">Your diary stays on your phone. The code is open under the <span class="nb">GPL-3.0</span> license, so anyone can read it.</p>
+        </div>
+      </div>
+      <div class="wrap">
+        <dl class="facts">
+          <div class="fact">
+            <dt>Stored on your phone</dt>
+            <dd>Your diary uses AES-256 encrypted storage, a standard strong encryption method. The key stays in the Android Keystore or the iOS Keychain. The app never sends it.</dd>
+          </div>
+          <div class="fact">
+            <dt>Delete it in one step</dt>
+            <dd>Choose Delete all my data in Settings. It wipes the active profile.</dd>
+          </div>
+          <div class="fact">
+            <dt>What leaves your phone</dt>
+            <dd>Food search sends your search term and your language code to Open Food Facts and to the food backend. Other destinations are optional. The <a href="https://github.com/simonoppowa/OpenNutriTracker#privacy">README privacy section</a> lists all of them.</dd>
+          </div>
+          <div class="fact">
+            <dt>Free for good</dt>
+            <dd>There is no paid tier and no ad code. The nutrient panel is free too. The <span class="nb">GPL-3.0</span> license means the code stays open.</dd>
+          </div>
+          <div class="fact">
+            <dt>Cited numbers</dt>
+            <dd>Calorie targets follow the Institute of Medicine (IOM) 2005. BMI (body mass index) follows the World Health Organization (WHO). Macros follow WHO TRS 916. Activity burn follows the 2024 Compendium. A Sources and References screen in the app links each paper.</dd>
+          </div>
+          <div class="fact">
+            <dt>Open food data</dt>
+            <dd>Food data comes from Open Food Facts, USDA FoodData Central, and the German BLS. The food backend is its own open repository. You can host it yourself.</dd>
+          </div>
+        </dl>
+        <aside class="limits" aria-labelledby="limits-title">
+          <h3 id="limits-title">Not a medical application</h3>
+          <p>OpenNutriTracker does not validate its data, so use it with care. Talk to a professional if you have health problems. Use during illness, pregnancy, or lactation is not recommended. The app is still under construction, so errors, bugs, and crashes might occur.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="contribute" aria-labelledby="contribute-title">
+      <div class="wrap">
+        <h2 id="contribute-title">Get it. Help build it.</h2>
+        <p class="intro">Over 30 developers have contributed code. The app is available in eleven languages.</p>
+        <div class="paths">
+          <div class="path">
+            <h3>Install</h3>
+            <p>The app is free on both stores.</p>
+            <div class="stores">
+              <a class="store" href="https://apps.apple.com/us/app/opennutritracker/id6451490901"><img src="assets/img/appstore_banner.png" width="159" height="54" loading="lazy" alt="Download on the App Store"></a>
+              <a class="store" href="https://play.google.com/store/apps/details?id=com.opennutritracker.ont.opennutritracker"><img src="assets/img/playstore_banner.png" width="184" height="54" loading="lazy" alt="Get it on Google Play"></a>
+            </div>
+          </div>
+          <div class="path">
+            <h3>Translate</h3>
+            <p>Translate in your browser on Weblate. You need no Dart and no local setup.</p>
+            <a class="btn" href="https://hosted.weblate.org/engage/opennutritracker/">Translate on Weblate</a>
+          </div>
+          <div class="path">
+            <h3>Write code</h3>
+            <p>Issues and pull requests are welcome. A pull request is a proposed code change. Target the develop branch. The app uses Flutter and Dart.</p>
+            <ul class="link-list">
+              <li><a href="https://github.com/simonoppowa/OpenNutriTracker/blob/develop/CONTRIBUTING.md">Contributing guide</a></li>
+              <li><a href="https://github.com/simonoppowa/OpenNutriTracker/issues">Issue tracker</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>
+        <h2>Unofficial community proposal</h2>
+        <p>This page is a proposal from a contributor. It is not the maintainer's site and does not speak for the project. The official project lives on GitHub.</p>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/simonoppowa/OpenNutriTracker">Repository on GitHub</a></li>
+          <li><a href="https://github.com/simonoppowa/OpenNutriTracker/issues">Issue tracker</a></li>
+          <li><a href="https://github.com/simonoppowa/OpenNutriTracker/blob/develop/LICENSE">License: GPL-3.0</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Credits</h2>
+        <p>Released under the GNU General Public License v3.0. Type is Nunito, under the SIL Open Font License. Food data comes from Open Food Facts and other sources named above.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/main.js" defer></script>
+</body>
+</html>
