@@ -339,7 +339,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           // bar instead of in the visible toolbar row.
           title: AnimatedOpacity(
             opacity: _showAppBarTitle ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.durationShort,
             child: Text(
               meal.name ?? '',
               style: Theme.of(context)

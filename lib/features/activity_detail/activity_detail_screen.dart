@@ -135,7 +135,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 background: ActivityTitleExpanded(activity: activityEntity),
                 title: AnimatedOpacity(
                   opacity: 1.0,
-                  duration: const Duration(milliseconds: 300),
+                  duration: AppMotion.durationShort,
                   child: top > barsHeight - offset && top < barsHeight + offset
                       ? Text(
                           activityEntity.getName(context),
