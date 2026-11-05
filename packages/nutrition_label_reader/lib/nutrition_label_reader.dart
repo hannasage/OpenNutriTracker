@@ -6,3 +6,5 @@ export 'src/model/recognized_document.dart';
 export 'src/model/field_flag.dart';
 export 'src/model/parse_result.dart';
 export 'src/model/parsed_label.dart';
+export 'src/vocabulary/english.dart';
+export 'src/vocabulary/label_vocabulary.dart';
