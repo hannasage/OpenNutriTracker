@@ -1,0 +1,20 @@
+name: nutrition_label_reader
+description: >-
+  Reads a nutrition facts panel from recognized text with a deterministic
+  parser. A model never gives a nutrition number.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  equatable: ^2.1.0
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
