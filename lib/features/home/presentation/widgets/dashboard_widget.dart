@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/utils/motion.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -83,6 +84,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
+    // Reduce Motion: the ring and the counter show the new value at once.
+    final gaugeDuration = motionDuration(
+      context,
+      const Duration(milliseconds: 800),
+    );
     final progressColor = widget.totalKcalLeft < 0
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
@@ -154,7 +160,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         // meal) still animate from the old percent, since
                         // that's a real, visible change worth animating.
                         animateToInitialPercent: false,
-                        animationDuration: 800,
+                        animationDuration: gaugeDuration.inMilliseconds,
                         curve: AppMotion.emphasized,
                         circularStrokeCap: CircularStrokeCap.round,
                         backgroundColor: palette.surfaceMuted,
@@ -163,7 +169,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             AnimatedFlipCounter(
-                              duration: const Duration(milliseconds: 800),
+                              duration: gaugeDuration,
+                              negativeSignDuration: motionDuration(
+                                context,
+                                const Duration(milliseconds: 150),
+                              ),
                               curve: AppMotion.emphasized,
                               value: displayValue.round(),
                               textStyle: textTheme.displaySmall?.copyWith(height: 1),
