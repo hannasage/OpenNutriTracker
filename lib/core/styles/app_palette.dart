@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/color_contrast.dart';
 
 /// The palette behind the calm friendly-flat redesign.
 ///
@@ -78,13 +79,24 @@ class AppPalette {
     textMuted: Color(0xFFA39E94),
   );
 
+  /// The accent as a text colour. [accent] stays the raw swatch for fills,
+  /// rings and the picker; this is the same hue, deepened (light) or
+  /// lightened (dark) only as far as needed to read at 4.5:1 on both the
+  /// [surface] and the [canvas]. An accent that already reads is returned
+  /// unchanged, so the default green is the same colour as [accent].
+  Color get accentText => accentTextFor(
+    accent,
+    surface: surface,
+    canvas: canvas,
+    brightness: brightness,
+  );
+
   /// Returns a copy with the accent swapped for [newAccent] (accent picker or a
   /// harmonized Material You primary). The neutral canvas, surfaces and macro
   /// colours are untouched, so only the one vivid role follows the user.
+  /// [onAccent] is whichever of white or a dark label colour reads better on
+  /// [newAccent].
   AppPalette withAccent(Color newAccent) {
-    final onNew = ThemeData.estimateBrightnessForColor(newAccent) == Brightness.dark
-        ? Colors.white
-        : const Color(0xFF20201C);
     return AppPalette(
       brightness: brightness,
       canvas: canvas,
@@ -93,7 +105,7 @@ class AppPalette {
       border: border,
       shadow: shadow,
       accent: newAccent,
-      onAccent: onNew,
+      onAccent: bestOnColor(newAccent),
       carbsColor: carbsColor,
       fatColor: fatColor,
       proteinColor: proteinColor,
@@ -131,4 +143,38 @@ class AppPalette {
         surfaceTint: Colors.transparent,
         shadow: shadow,
       );
+}
+
+/// Derives the text-safe form of [accent] for the given surfaces: mixed toward
+/// the strong text colour in light mode and toward the light text colour in
+/// dark mode, until it reads at [kMinTextContrast] on both [surface] and
+/// [canvas]. Returns [accent] itself when it already does.
+Color accentTextFor(
+  Color accent, {
+  required Color surface,
+  required Color canvas,
+  required Brightness brightness,
+}) {
+  final toward = brightness == Brightness.light
+      ? AppPalette.light.textStrong
+      : AppPalette.dark.textStrong;
+  return ensureContrast(
+    accent,
+    toward: toward,
+    against: [surface, canvas],
+  );
+}
+
+/// Reads [AppPalette.accentText] from the theme's colour scheme, which is how
+/// widgets already reach the accent (`colorScheme.primary`). A [ColorScheme]
+/// has no slot for it, so it is derived from the scheme's own primary,
+/// surface and canvas (`surfaceContainerLow` in [AppPalette.colorScheme]).
+extension AccentTextColorScheme on ColorScheme {
+  /// Use for accent-coloured text. Keep [primary] for fills.
+  Color get accentText => accentTextFor(
+    primary,
+    surface: surface,
+    canvas: surfaceContainerLow,
+    brightness: brightness,
+  );
 }
