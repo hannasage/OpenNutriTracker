@@ -1,4 +1,5 @@
-// SYNTHETIC. Hand-written OCR-style data. Not from a real product and not from a real recognition run.
+// SYNTHETIC. Hand-written OCR-style data. Not from a real product and
+// not from a real recognition run.
 
 import 'dart:math';
 
