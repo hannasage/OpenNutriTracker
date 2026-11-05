@@ -144,12 +144,10 @@ class NumberLexer {
     final decimal = _finite('${head.isEmpty ? '0' : head}.$tail');
     if (decimal == null) return null;
     // A group of three digits after the only mark could be a thousands group.
-    // A comma head may not start with 0. A dot head may be a single 0, so
-    // 0.125 reads two ways. That asymmetry is deliberate (owner decision).
+    // A thousands group never starts with 0, so a head such as 0 or 00 is a
+    // decimal. The rule is the same for a comma and a dot.
     final headFits =
-        head.isNotEmpty &&
-        head.length <= 3 &&
-        (!head.startsWith('0') || (mark == '.' && head == '0'));
+        head.isNotEmpty && head.length <= 3 && !head.startsWith('0');
     final couldBeThousands = tail.length == 3 && headFits;
     if (!couldBeThousands) return decimal;
     final thousands = _finite('$head$tail');

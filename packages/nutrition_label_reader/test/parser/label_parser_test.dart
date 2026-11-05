@@ -1020,7 +1020,7 @@ void main() {
       expect(fat.flags, {FieldFlag.ambiguousNumber});
     });
 
-    test('0.125 g per serving stays ambiguous without a floor', () {
+    test('0.125 g per serving is a decimal, never ambiguous', () {
       const grid = FixtureGrid([
         ['', 'Per serving'],
         ['Energy', '1046 kJ / 250 kcal'],
@@ -1031,8 +1031,8 @@ void main() {
       final protein = _parsed(
         grid.asSeparateBoxes(),
       ).nutrient(NutrientId.protein)!;
-      expect(protein.perServing!.value, isNull);
-      expect(protein.flags, {FieldFlag.ambiguousNumber});
+      expect(protein.perServing!.value, 0.125);
+      expect(protein.flags.contains(FieldFlag.ambiguousNumber), isFalse);
     });
 
     test('a cell with two quantities for one nutrient is ambiguous', () {

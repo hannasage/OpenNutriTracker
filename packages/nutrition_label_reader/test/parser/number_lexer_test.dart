@@ -118,11 +118,12 @@ void main() {
       );
     });
 
-    test('0.125 reads two ways, unlike 0,125', () {
-      final dot = NumberLexer.read('0.125');
-      expect(dot.status, NumberStatus.ambiguous);
-      expect(dot.readings, [0.125, 125]);
-      expect(NumberLexer.read('0,125').value, 0.125);
+    test('a leading zero makes a dot number a decimal, like a comma', () {
+      for (final text in ['0.125', '0,125', '0.5', '0.046']) {
+        final r = NumberLexer.read(text);
+        expect(r.status, NumberStatus.value, reason: text);
+        expect(r.value, double.parse(text.replaceAll(',', '.')));
+      }
     });
 
     test('other dot numbers stay decimals', () {
