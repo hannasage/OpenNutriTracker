@@ -12,6 +12,7 @@ import 'parser_config.dart';
 import 'plausibility_rules.dart';
 import 'quantity_scanner.dart';
 import 'salt_sodium_rules.dart';
+import 'scaling_rules.dart';
 import 'row_builder.dart';
 import 'serving_parser.dart';
 import 'table_adapter.dart';
@@ -113,17 +114,22 @@ class LabelParser {
     );
     if (!hasEnergy) return failure(LabelFailureReason.noEnergyRow);
 
+    // Rules run in a fixed order: units (in the lexer), energy, salt and
+    // sodium, serving scaling, plausibility.
+    final serving = ServingParser(matcher).parse(rows);
+    final scaled = applyServingScaling(
+      applySaltSodiumRules(applyEnergyRules(extraction.nutrients, config)),
+      serving,
+    );
     return LabelParsed(
       ParsedLabel(
-        nutrients: applyPlausibilityRules(
-          applySaltSodiumRules(applyEnergyRules(extraction.nutrients, config)),
-          config,
-        ),
+        nutrients: applyPlausibilityRules(scaled.nutrients, config),
         primaryBasis: extraction.primaryBasis,
         languageTag: pick.vocabulary.languageTag,
-        serving: ServingParser(matcher).parse(rows),
+        serving: serving,
         warnings: {
           ...extraction.warnings,
+          ...scaled.warnings,
           if (pick.ambiguous) LabelWarning.languageAmbiguous,
           if (fellBack) LabelWarning.tableFallbackToBoxes,
         },

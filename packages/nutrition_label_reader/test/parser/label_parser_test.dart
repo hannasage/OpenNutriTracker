@@ -8,6 +8,7 @@ import '../fixtures/eu_two_column.dart';
 import '../fixtures/fixture_builder.dart';
 import '../fixtures/kj_only.dart';
 import '../fixtures/missing_salt.dart';
+import '../fixtures/per_serving_scaled.dart';
 import '../fixtures/us_style.dart';
 
 const _parser = LabelParser();
@@ -241,16 +242,16 @@ void main() {
   group('fixture 3: US style, per serving, percent column', () {
     _checkShapes(usStyle, {
       NutrientId.energyKcal: (null, 230),
-      NutrientId.fat: (null, 8),
-      NutrientId.saturatedFat: (null, 1),
-      NutrientId.transFat: (null, 0),
-      NutrientId.cholesterol: (null, 0),
-      NutrientId.sodium: (null, 160),
-      NutrientId.carbohydrate: (null, 37),
-      NutrientId.fiber: (null, 4),
-      NutrientId.sugars: (null, 12),
-      NutrientId.protein: (null, 3),
-      NutrientId.salt: (null, 160 * 2.5 / 1000),
+      NutrientId.fat: (8 * 100 / 55, 8),
+      NutrientId.saturatedFat: (1 * 100 / 55, 1),
+      NutrientId.transFat: (0, 0),
+      NutrientId.cholesterol: (0, 0),
+      NutrientId.sodium: (160 * 100 / 55, 160),
+      NutrientId.carbohydrate: (37 * 100 / 55, 37),
+      NutrientId.fiber: (4 * 100 / 55, 4),
+      NutrientId.sugars: (12 * 100 / 55, 12),
+      NutrientId.protein: (3 * 100 / 55, 3),
+      NutrientId.salt: (160 * 2.5 / 1000 * 100 / 55, 160 * 2.5 / 1000),
     });
 
     test('keeps the serving basis, units and the ignored percent column', () {
@@ -264,7 +265,9 @@ void main() {
           label.nutrient(NutrientId.sodium)!.perServing!.unit,
           LabelUnit.mg,
         );
-        expect(label.nutrient(NutrientId.fat)!.per100, isNull);
+        final fat = label.nutrient(NutrientId.fat)!;
+        expect(fat.per100!.isDerived, isTrue);
+        expect(fat.flags, contains(FieldFlag.scaledFromServing));
       }
     });
 
@@ -273,9 +276,82 @@ void main() {
         final calories = _parsed(entry.value).nutrient(NutrientId.energyKcal)!;
         expect(calories.perServing!.value, 230, reason: entry.key);
         expect(calories.perServing!.unit, isNull, reason: entry.key);
+        expect(calories.per100, isNull, reason: entry.key);
         expect(calories.flags, contains(FieldFlag.unitMissing));
         expect(calories.review, FieldReview.checkThis);
       }
+    });
+  });
+
+  group('fixture 8: per serving only, 30 g', () {
+    _checkShapes(perServingScaled, {
+      NutrientId.energyKj: (392 * 100 / 30, 392),
+      NutrientId.energyKcal: (94 * 100 / 30, 94),
+      NutrientId.fat: (1.1 * 100 / 30, 1.1),
+      NutrientId.carbohydrate: (18 * 100 / 30, 18),
+      NutrientId.protein: (3 * 100 / 30, 3),
+    });
+
+    test('scales to per 100 with a flag and keeps the serving value', () {
+      for (final entry in _shapes(perServingScaled).entries) {
+        final label = _parsed(entry.value);
+        expect(label.primaryBasis, LabelBasis.perServing, reason: entry.key);
+        expect(label.serving!.amount, 30, reason: entry.key);
+        expect(label.warnings, isEmpty, reason: entry.key);
+        for (final n in label.nutrients) {
+          expect(n.per100!.isDerived, isTrue, reason: '${n.id}');
+          expect(n.perServing!.isDerived, isFalse);
+          expect(n.flags, contains(FieldFlag.scaledFromServing));
+          expect(n.review, FieldReview.checkThis);
+        }
+      }
+    });
+  });
+
+  group('fixture 9: per serving only, 1 cup', () {
+    _checkShapes(perServingCup, {
+      NutrientId.energyKj: (null, 392),
+      NutrientId.energyKcal: (null, 94),
+      NutrientId.fat: (null, 1.1),
+      NutrientId.carbohydrate: (null, 18),
+      NutrientId.protein: (null, 3),
+    });
+
+    test('has no per 100 value and warns about the serving size', () {
+      for (final entry in _shapes(perServingCup).entries) {
+        final label = _parsed(entry.value);
+        expect(label.warnings, {LabelWarning.servingSizeMissing});
+        expect(label.serving!.rawText, '1 cup', reason: entry.key);
+        expect(label.serving!.amount, isNull);
+        expect(label.warnings.contains(LabelWarning.basisUnknown), isFalse);
+        for (final n in label.nutrients) {
+          expect(n.per100, isNull, reason: '${n.id}');
+          expect(n.flags.contains(FieldFlag.scaledFromServing), isFalse);
+        }
+      }
+    });
+
+    test('a label with no serving row warns the same way', () {
+      const grid = FixtureGrid([
+        ['', 'Per serving'],
+        ['Energy', '392 kJ / 94 kcal'],
+        ['Fat', '1.1 g'],
+        ['Carbohydrate', '18 g'],
+        ['Protein', '3 g'],
+      ]);
+      final label = _parsed(grid.asSeparateBoxes());
+      expect(label.serving, isNull);
+      expect(label.warnings, {LabelWarning.servingSizeMissing});
+    });
+  });
+
+  group('scaling leaves a two column label alone', () {
+    test('fixture 1 has no scaled value and no warning', () {
+      final label = _parsed(euTwoColumn.asTable());
+      for (final n in label.nutrients) {
+        expect(n.flags.contains(FieldFlag.scaledFromServing), isFalse);
+      }
+      expect(label.warnings, isEmpty);
     });
   });
 
