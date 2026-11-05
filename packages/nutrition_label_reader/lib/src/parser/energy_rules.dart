@@ -1,20 +1,12 @@
 import '../model/field_flag.dart';
-import '../model/label_rect.dart';
 import '../model/parsed_label.dart';
+import 'derive_helpers.dart';
 import 'parser_config.dart';
 
 /// Kilojoules in one kilocalorie. The app uses the same value at
 /// lib/core/utils/calc/unit_calc.dart:10 (`UnitCalc.kcalToKjFactor`). The
 /// plugin must not import app code, so the value is repeated here.
 const double _kcalToKjFactor = 4.184;
-
-/// Flags of a source value that carry over to a value derived from it.
-const _inheritedFlags = {
-  FieldFlag.columnFromOrderNotPosition,
-  FieldFlag.columnAmbiguous,
-};
-
-enum _Slot { per100, perServing, unknownBasis }
 
 /// Reconciles kJ and kcal. Rules R8 to R10.
 ///
@@ -42,15 +34,15 @@ List<ParsedNutrient> applyEnergyRules(
   final kcalBefore = kcal;
   final box = (kj ?? kcal)!.sourceBox;
 
-  for (final slot in _Slot.values) {
-    final kjQuantity = _get(kj, slot);
-    final kcalQuantity = _get(kcal, slot);
-    final kjRead = _isRead(kjQuantity, LabelUnit.kj);
-    final kcalRead = _isRead(kcalQuantity, LabelUnit.kcal);
+  for (final slot in Slot.values) {
+    final kjQuantity = slotOf(kj, slot);
+    final kcalQuantity = slotOf(kcal, slot);
+    final kjRead = isRead(kjQuantity, LabelUnit.kj);
+    final kcalRead = isRead(kcalQuantity, LabelUnit.kcal);
     if (kjRead && kcalRead) {
       if (_disagree(kjQuantity!.value!, kcalQuantity!.value!, config)) {
-        kj = _addFlags(kj!, {FieldFlag.energyUnitsDisagree});
-        kcal = _addFlags(kcal!, {FieldFlag.energyUnitsDisagree});
+        kj = addFlags(kj!, {FieldFlag.energyUnitsDisagree});
+        kcal = addFlags(kcal!, {FieldFlag.energyUnitsDisagree});
       }
     } else if (kjRead && kcalQuantity == null) {
       final derived = ParsedQuantity(
@@ -59,7 +51,7 @@ List<ParsedNutrient> applyEnergyRules(
         rawText: kjQuantity.rawText,
         isDerived: true,
       );
-      kcal = _withDerived(kcal, NutrientId.energyKcal, box, slot, derived, kj!);
+      kcal = withDerived(kcal, NutrientId.energyKcal, box, slot, derived, kj!);
     } else if (kcalRead && kjQuantity == null) {
       final derived = ParsedQuantity(
         value: kcalQuantity!.value! * _kcalToKjFactor,
@@ -67,7 +59,7 @@ List<ParsedNutrient> applyEnergyRules(
         rawText: kcalQuantity.rawText,
         isDerived: true,
       );
-      kj = _withDerived(kj, NutrientId.energyKj, box, slot, derived, kcal!);
+      kj = withDerived(kj, NutrientId.energyKj, box, slot, derived, kcal!);
     }
   }
 
@@ -85,68 +77,8 @@ List<ParsedNutrient> applyEnergyRules(
   return result;
 }
 
-ParsedQuantity? _get(ParsedNutrient? nutrient, _Slot slot) {
-  if (nutrient == null) return null;
-  return switch (slot) {
-    _Slot.per100 => nutrient.per100,
-    _Slot.perServing => nutrient.perServing,
-    _Slot.unknownBasis => nutrient.unknownBasis,
-  };
-}
-
-bool _isRead(ParsedQuantity? quantity, LabelUnit unit) =>
-    quantity != null &&
-    quantity.value != null &&
-    quantity.unit == unit &&
-    !quantity.isUpperBound &&
-    !quantity.isDerived;
-
 bool _disagree(double kj, double kcal, ParserConfig config) {
   final converted = kcal * _kcalToKjFactor;
   if (kj <= 0) return converted != 0;
   return (kj - converted).abs() / kj > config.energyUnitTolerance;
-}
-
-ParsedNutrient _addFlags(ParsedNutrient nutrient, Set<FieldFlag> flags) {
-  return _copy(nutrient, flags: {...nutrient.flags, ...flags});
-}
-
-ParsedNutrient _withDerived(
-  ParsedNutrient? target,
-  NutrientId id,
-  LabelRect? box,
-  _Slot slot,
-  ParsedQuantity derived,
-  ParsedNutrient source,
-) {
-  final flags = {
-    FieldFlag.derivedFromOtherUnit,
-    ...source.flags.intersection(_inheritedFlags),
-  };
-  final base = target ?? ParsedNutrient(id: id, sourceBox: box);
-  return _copy(
-    base,
-    per100: slot == _Slot.per100 ? derived : null,
-    perServing: slot == _Slot.perServing ? derived : null,
-    unknownBasis: slot == _Slot.unknownBasis ? derived : null,
-    flags: {...base.flags, ...flags},
-  );
-}
-
-/// A copy of [n]. A slot argument replaces the slot when it is not null.
-ParsedNutrient _copy(
-  ParsedNutrient n, {
-  ParsedQuantity? per100,
-  ParsedQuantity? perServing,
-  ParsedQuantity? unknownBasis,
-  Set<FieldFlag>? flags,
-}) {
-  return ParsedNutrient(
-    id: n.id,
-    per100: per100 ?? n.per100,
-    perServing: perServing ?? n.perServing,
-    unknownBasis: unknownBasis ?? n.unknownBasis,
-    flags: flags ?? n.flags,
-    sourceBox: n.sourceBox,
-  );
 }

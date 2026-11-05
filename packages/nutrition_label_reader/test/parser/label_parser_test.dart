@@ -7,6 +7,7 @@ import '../fixtures/eu_one_column.dart';
 import '../fixtures/eu_two_column.dart';
 import '../fixtures/fixture_builder.dart';
 import '../fixtures/kj_only.dart';
+import '../fixtures/missing_salt.dart';
 import '../fixtures/us_style.dart';
 
 const _parser = LabelParser();
@@ -172,6 +173,7 @@ void main() {
       NutrientId.fiber: (8, 2.4),
       NutrientId.protein: (10, 3),
       NutrientId.salt: (0.5, 0.15),
+      NutrientId.sodium: (0.5 * 1000 / 2.5, 0.15 * 1000 / 2.5),
     });
 
     test('reads basis, serving, units and review', () {
@@ -195,16 +197,14 @@ void main() {
     });
 
     test('table and boxes give a clean review, merged lines check', () {
-      expect(
-        _parsed(euTwoColumn.asTable()).nutrients.map((n) => n.review).toSet(),
-        {FieldReview.looksRight},
-      );
-      expect(
-        _parsed(
-          euTwoColumn.asSeparateBoxes(),
-        ).nutrients.map((n) => n.review).toSet(),
-        {FieldReview.looksRight},
-      );
+      Set<FieldReview> readReviews(RecognizedDocument doc) => {
+        for (final n in _parsed(doc).nutrients)
+          if (n.per100?.isDerived != true) n.review,
+      };
+      expect(readReviews(euTwoColumn.asTable()), {FieldReview.looksRight});
+      expect(readReviews(euTwoColumn.asSeparateBoxes()), {
+        FieldReview.looksRight,
+      });
       expect(
         _parsed(
           euTwoColumn.asMergedLines(),
@@ -225,6 +225,7 @@ void main() {
       NutrientId.fiber: (8, null),
       NutrientId.protein: (10, null),
       NutrientId.salt: (0.5, null),
+      NutrientId.sodium: (0.5 * 1000 / 2.5, null),
     });
 
     test('has no serving and the per 100 g basis', () {
@@ -249,6 +250,7 @@ void main() {
       NutrientId.fiber: (null, 4),
       NutrientId.sugars: (null, 12),
       NutrientId.protein: (null, 3),
+      NutrientId.salt: (null, 160 * 2.5 / 1000),
     });
 
     test('keeps the serving basis, units and the ignored percent column', () {
@@ -285,6 +287,7 @@ void main() {
       NutrientId.carbohydrate: (60, null),
       NutrientId.protein: (10, null),
       NutrientId.salt: (0.5, null),
+      NutrientId.sodium: (0.5 * 1000 / 2.5, null),
     });
 
     test('derives kcal and says so', () {
@@ -296,6 +299,67 @@ void main() {
         expect(kcal.review, FieldReview.checkThis);
         expect(label.nutrient(NutrientId.energyKj)!.per100!.isDerived, isFalse);
       }
+    });
+  });
+
+  group('fixture 7: no salt and no sodium', () {
+    _checkShapes(missingSalt, {
+      NutrientId.energyKj: (1046, null),
+      NutrientId.energyKcal: (250, null),
+      NutrientId.fat: (3.5, null),
+      NutrientId.carbohydrate: (60, null),
+      NutrientId.protein: (10, null),
+    });
+
+    test('has no salt entry and no sodium entry, and no zero', () {
+      for (final entry in _shapes(missingSalt).entries) {
+        final label = _parsed(entry.value);
+        expect(label.nutrient(NutrientId.salt), isNull, reason: entry.key);
+        expect(label.nutrient(NutrientId.sodium), isNull, reason: entry.key);
+      }
+    });
+  });
+
+  group('salt and sodium rows', () {
+    test('salt read gives derived sodium in mg', () {
+      for (final entry in _shapes(euOneColumn).entries) {
+        final label = _parsed(entry.value);
+        final sodium = label.nutrient(NutrientId.sodium)!;
+        expect(sodium.per100!.unit, LabelUnit.mg, reason: entry.key);
+        expect(sodium.per100!.isDerived, isTrue, reason: entry.key);
+        expect(sodium.flags, contains(FieldFlag.derivedFromOtherUnit));
+        expect(label.nutrient(NutrientId.salt)!.per100!.isDerived, isFalse);
+      }
+    });
+
+    test('sodium read gives derived salt in g', () {
+      for (final entry in _shapes(usStyle).entries) {
+        final label = _parsed(entry.value);
+        final salt = label.nutrient(NutrientId.salt)!;
+        expect(salt.perServing!.unit, LabelUnit.g, reason: entry.key);
+        expect(salt.perServing!.isDerived, isTrue, reason: entry.key);
+        expect(salt.flags, contains(FieldFlag.derivedFromOtherUnit));
+        expect(
+          label.nutrient(NutrientId.sodium)!.perServing!.isDerived,
+          isFalse,
+        );
+      }
+    });
+
+    test('both read keeps both values', () {
+      const grid = FixtureGrid([
+        ['', 'Per 100 g'],
+        ['Energy', '1046 kJ / 250 kcal'],
+        ['Fat', '3.5 g'],
+        ['Salt', '0.5 g'],
+        ['Sodium', '190 mg'],
+        ['Protein', '10 g'],
+      ]);
+      final label = _parsed(grid.asSeparateBoxes());
+      expect(label.nutrient(NutrientId.salt)!.per100!.value, 0.5);
+      expect(label.nutrient(NutrientId.sodium)!.per100!.value, 190);
+      expect(label.nutrient(NutrientId.salt)!.flags, isEmpty);
+      expect(label.nutrient(NutrientId.sodium)!.flags, isEmpty);
     });
   });
 
@@ -668,8 +732,8 @@ void main() {
 
     test('a missing nutrient is absent, not zero', () {
       final label = _parsed(euOneColumn.asTable());
-      expect(label.nutrient(NutrientId.sodium), isNull);
       expect(label.nutrient(NutrientId.transFat), isNull);
+      expect(label.nutrient(NutrientId.cholesterol), isNull);
     });
 
     test('an upper bound keeps the value and flags it', () {

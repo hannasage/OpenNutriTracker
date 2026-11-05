@@ -10,6 +10,7 @@ import 'label_row.dart';
 import 'nutrient_extractor.dart';
 import 'parser_config.dart';
 import 'quantity_scanner.dart';
+import 'salt_sodium_rules.dart';
 import 'row_builder.dart';
 import 'serving_parser.dart';
 import 'table_adapter.dart';
@@ -113,7 +114,9 @@ class LabelParser {
 
     return LabelParsed(
       ParsedLabel(
-        nutrients: applyEnergyRules(extraction.nutrients, config),
+        nutrients: applySaltSodiumRules(
+          applyEnergyRules(extraction.nutrients, config),
+        ),
         primaryBasis: extraction.primaryBasis,
         languageTag: pick.vocabulary.languageTag,
         serving: ServingParser(matcher).parse(rows),
